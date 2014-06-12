@@ -4,10 +4,12 @@
     android:layout_height="match_parent">
     <ImageView
         android:id="@+id/place_logo"
-        android:layout_width="81px"
-        android:layout_height="81px"
+        android:layout_width="71px"
+        android:layout_height="71px"
         android:layout_centerVertical="false"
-        android:padding="5px"
+        android:layout_marginRight="10px"
+        android:layout_marginLeft="10px"
+        android:src="@drawable/blank"
         android:contentDescription="@string/logo" />
 
     <TextView

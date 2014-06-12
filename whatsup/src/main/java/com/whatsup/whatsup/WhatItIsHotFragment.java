@@ -217,14 +217,13 @@ public class WhatItIsHotFragment extends ListFragment {
             setListAdapter(adapter);
             for(int i=0; i<adapter.getCount(); i++) {
                 HashMap<String,Object> hm = (HashMap<String, Object>) adapter.getItem(i);
-                String imgURL = (String) hm.get("gp_icon_path");
+                HashMap<String, Object> hmDownload = new HashMap<String, Object>();
                 ImageLoaderTask imageLoaderTask = new ImageLoaderTask();
 
-                HashMap<String, Object> hmDownload = new HashMap<String, Object>();
-                hm.put("gp_icon_path", imgURL);
-                hm.put("position", i);
-
-                imageLoaderTask.execute(hm);
+                String imgURL = (String) hm.get("gp_icon_path");
+                hmDownload.put("gp_icon_path", imgURL);
+                hmDownload.put("position", i);
+                imageLoaderTask.execute(hmDownload);
             }
         }
 
@@ -234,7 +233,6 @@ public class WhatItIsHotFragment extends ListFragment {
 
         @Override
         protected HashMap<String,Object> doInBackground(HashMap<String,Object>... hm) {
-            Log.d("IMage downloader tastk doInBackground: ","entro");
             InputStream iStream = null;
             String imgUrl = (String) hm[0].get("gp_icon_path");
             int position = (Integer) hm[0].get("position");
@@ -244,7 +242,6 @@ public class WhatItIsHotFragment extends ListFragment {
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.connect();
                 iStream = urlConnection.getInputStream();
-                Log.d("gp_icon_path: ", imgUrl);
                 File cacheDirectory = getActivity().getCacheDir();
                 File tmpFile = new File(cacheDirectory.getPath() + "/wpa_" + position + ".png");
                 FileOutputStream fOutStream = new FileOutputStream(tmpFile);
@@ -255,8 +252,6 @@ public class WhatItIsHotFragment extends ListFragment {
                 HashMap<String, Object>  hmBitmap = new HashMap<String, Object>();
                 hmBitmap.put("place_logo", tmpFile.getPath());
                 hmBitmap.put("position", position);
-                Log.d("Supuestamente descargó: ", tmpFile.getPath());
-                Log.d("IMage downloader tastk doInBackground: ","salida");
                 return hmBitmap;
             }catch (Exception e) {
                 e.printStackTrace();
@@ -266,15 +261,12 @@ public class WhatItIsHotFragment extends ListFragment {
 
         @Override
         protected void onPostExecute(HashMap<String, Object> result) {
-            Log.d("IMage downloader tastk onPostExecute: ","entrada");
             String path = (String) result.get("place_logo");
             int position = (Integer) result.get("position");
             SimpleAdapter adapter = (SimpleAdapter) getListAdapter();
             HashMap<String, Object> hm = (HashMap<String, Object>) adapter.getItem(position);
-            Log.d("Coger imagen desde: ", path + " position: " + String.valueOf(position) +  " Adapter tiene: " + String.valueOf(adapter.getCount()) );
             hm.put("gp_icon", path);
-            //adapter.notifyDataSetChanged();
-            Log.d("IMage downloader tastk onPostExecute: ","salida");
+            adapter.notifyDataSetChanged();
         }
 
     }

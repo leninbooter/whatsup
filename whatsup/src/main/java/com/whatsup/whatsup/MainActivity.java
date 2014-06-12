@@ -69,7 +69,10 @@ public class MainActivity extends Activity
         /*Toast.makeText(getBaseContext(), "Entré en onNavigationDrawerItemSelected position: " + String.valueOf(position), Toast.LENGTH_SHORT).show();
         Log.d("Message","Entré en onNavigationDrawerItemSelected position: " + String.valueOf(position));*/
         FragmentManager fragmentManager = getFragmentManager();
-        switch (position) {
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, WhatItIsHotFragment.newInstance())
+                .commit();
+        /*switch (position) {
             case 0:
                 fragmentManager.beginTransaction()
                         .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
@@ -85,7 +88,7 @@ public class MainActivity extends Activity
                         .replace(R.id.container, WhatItIsHotFragment.newInstance())
                         .commit();
                 break;
-        }
+        }*/
 
     }
 

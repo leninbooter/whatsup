@@ -37,6 +37,7 @@ public class HotPlacesJSONparser {
                 place = getPlace((JSONObject)jPlaces.get(i));
                 placeList.add(place);
             }catch ( JSONException e ) {
+                Log.d("Exception from getplaces: ", e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -46,28 +47,17 @@ public class HotPlacesJSONparser {
     private HashMap<String, Object> getPlace(JSONObject jPlace) {
         Log.d("Hot place parser getPlace: ","entrada");
         HashMap<String, Object> place = new HashMap<String, Object>();
-        String placeName = "";
-        String placeAddress = "";
-        String placeLogo = "";
-        String placeFullness = "";
-        String placeCapacity = "";
 
         try {
-            placeName = jPlace.getString("name");
             place.put("name", jPlace.getString("name"));
-            placeAddress = jPlace.getString("gp_formatted_address");
             place.put("gp_formatted_address", jPlace.getString("gp_formatted_address"));
-            placeLogo =  jPlace.getString("gp_icon");
-            place.put("gp_icon", R.drawable.blank1 );
+            place.put("gp_icon", R.drawable.blank );
             place.put("gp_icon_path", jPlace.getString("gp_icon"));
-            placeFullness = jPlace.getString("fullness");
             place.put("fullness", jPlace.getString("fullness"));
-            placeCapacity = jPlace.getString("capacity");
             place.put("capacity", jPlace.getString("capacity"));
         }catch (JSONException e ) {
             e.printStackTrace();
         }
-        Log.d("Hot place parser getPlace: ","salio");
         return place;
     }
 
