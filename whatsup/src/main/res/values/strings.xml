@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_example">Example action</string>
+    <string name="action_settings">Settings</string>
+    <string name="app_name">WhatsUp</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="how_get_there">How to get there?</string>
+    <string name="logo">Logotype</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="what_was_here">What was here?</string>
+    <string name="whats_hot">What it\'s hot</string>
+    <string name="whats_up_today">What it\'s up today</string>
+    <string name="whats_free">What it\'s free</string>
+
+</resources>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/place_logo"
+        android:layout_width="81px"
+        android:layout_height="81px"
+        android:layout_centerVertical="false"
+        android:padding="5px"
+        android:contentDescription="@string/logo" />
+
+    <TextView
+        style="@style/Tittles"
+        android:id="@+id/place_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:layout_toRightOf="@id/place_logo"
+        />
+
+    <TextView
+        style="@style/Addresses"
+        android:id="@+id/place_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="5px"
+        android:text=""
+        android:layout_toRightOf="@id/place_logo"
+        android:layout_below="@id/place_name"/>
+
+    <TextView
+        style="@style/Controls"
+        android:id="@+id/how_get_there"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/how_get_there"
+        android:layout_toRightOf="@id/place_logo"
+        android:layout_below="@id/place_address"
+        android:layout_alignParentBottom="true"
+        android:gravity="bottom"/>
+
+    <TextView
+        style="@style/Controls"
+        android:id="@+id/what_washere"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/what_was_here"
+        android:layout_toRightOf="@id/how_get_there"
+        android:layout_below="@id/place_address"
+        android:layout_alignParentBottom="true"
+        android:gravity="bottom"
+        android:layout_marginLeft="20px"
+        android:textSize="15sp"/>
+
+    <ImageView
+        android:id="@+id/place_fullness"
+        android:layout_width="100px"
+        android:layout_height="100px"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        />
+</RelativeLayout>
