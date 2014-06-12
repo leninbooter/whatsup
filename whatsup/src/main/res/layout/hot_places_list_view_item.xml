@@ -26,8 +26,8 @@
         android:id="@+id/place_address"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginRight="100px"
         android:paddingBottom="5px"
-        android:text=""
         android:layout_toRightOf="@id/place_logo"
         android:layout_below="@id/place_name"/>
 
@@ -59,6 +59,7 @@
         android:id="@+id/place_fullness"
         android:layout_width="100px"
         android:layout_height="100px"
+        android:padding="5px"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         />
