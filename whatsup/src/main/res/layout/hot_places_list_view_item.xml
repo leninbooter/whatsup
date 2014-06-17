@@ -31,7 +31,7 @@
         android:layout_toRightOf="@id/place_logo"
         android:layout_below="@id/place_name"/>
 
-    <TextView
+    <!-- <TextView
         style="@style/Controls"
         android:id="@+id/how_get_there"
         android:layout_width="wrap_content"
@@ -40,9 +40,9 @@
         android:layout_toRightOf="@id/place_logo"
         android:layout_below="@id/place_address"
         android:layout_alignParentBottom="true"
-        android:gravity="bottom"/>
+        android:gravity="bottom"/> -->
 
-    <TextView
+    <!--<TextView
         style="@style/Controls"
         android:id="@+id/what_washere"
         android:layout_width="wrap_content"
@@ -52,8 +52,26 @@
         android:layout_below="@id/place_address"
         android:layout_alignParentBottom="true"
         android:gravity="bottom"
-        android:layout_marginLeft="20px"
-        android:textSize="15sp"/>
+        android:layout_marginLeft="20px"/> style="@style/Buttons"-->
+    <Button
+        style="@style/Buttons"
+        android:id="@+id/how_get_there"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/how_get_there"
+        android:layout_toRightOf="@id/place_logo"
+        android:layout_below="@id/place_address"
+        android:layout_alignParentBottom="true" />
+
+    <Button
+        style="@style/Buttons"
+        android:id="@+id/what_washere"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/what_was_here"
+        android:layout_toRightOf="@id/how_get_there"
+        android:layout_below="@id/place_address"
+        android:layout_alignParentBottom="true" />
 
     <ImageView
         android:id="@+id/place_fullness"

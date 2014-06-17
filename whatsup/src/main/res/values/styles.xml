@@ -26,6 +26,22 @@
         <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:color">#04124f</item>
+        <item name="android:shadowColor">#7F000000</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">2</item>
+    </style>
+
+    <style name="Buttons">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/dark_gray</item>
+        <item name="android:background">@drawable/button_custom</item>
+        <item name="android:layout_margin">3px</item>
+        <item name="android:padding">8px</item>
+        <item name="android:minHeight">0px</item>
+        <item name="android:clickable">true</item>
+        <item name="android:enabled">true</item>
     </style>
 
 </resources>

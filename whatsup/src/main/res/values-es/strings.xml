@@ -11,8 +11,8 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="what_was_here">¿Qué hubo aquí?</string>
-    <string name="whats_hot">What it\'s hot</string>
-    <string name="whats_up_today">What it\'s up today</string>
-    <string name="whats_free">What it\'s free</string>
+    <string name="whats_hot">Lugares Preferidos</string>
+    <string name="whats_up_today">Lo Que Hay Para hoy</string>
+    <string name="whats_free">Lugares Económicos</string>
 
 </resources>

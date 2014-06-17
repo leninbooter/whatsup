@@ -47,7 +47,7 @@ public class WhatItIsHotFragment extends ListFragment {
     private Params parameters;
     private DownloadTask downloadTask;
     private ListViewLoaderTask listViewLoaderTask;
-    private ImageLoaderTask imageLoaderTask;
+    private ImageLoaderTask imageLoaderTask[];
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -134,7 +134,12 @@ public class WhatItIsHotFragment extends ListFragment {
     @Override
     public void onPause() {
         super.onPause();
-        Log.d("on", "onPause");
+        downloadTask.cancel(true);
+        if( imageLoaderTask != null ) {
+            for (int i = 0; i < imageLoaderTask.length; i++) {
+                imageLoaderTask[i].cancel(true);
+            }
+        }
     }
 
     @Override
@@ -153,8 +158,7 @@ public class WhatItIsHotFragment extends ListFragment {
     public void onDestroy() {
         super.onDestroy();
         Log.d("on", "onDestroy");
-        downloadTask.cancel(true);
-        imageLoaderTask.cancel(true);
+
     }
 
     @Override
@@ -256,15 +260,16 @@ public class WhatItIsHotFragment extends ListFragment {
         @Override
         protected void onPostExecute(SimpleAdapter adapter) {
             setListAdapter(adapter);
+            imageLoaderTask = new ImageLoaderTask[adapter.getCount()];
             for(int i=0; i<adapter.getCount(); i++) {
                 HashMap<String,Object> hm = (HashMap<String, Object>) adapter.getItem(i);
                 HashMap<String, Object> hmDownload = new HashMap<String, Object>();
-                imageLoaderTask = new ImageLoaderTask();
+                imageLoaderTask[i] = new ImageLoaderTask();
 
                 String imgURL = (String) hm.get("gp_icon_path");
                 hmDownload.put("gp_icon_path", imgURL);
                 hmDownload.put("position", i);
-                imageLoaderTask.execute(hmDownload);
+                imageLoaderTask[i].execute(hmDownload);
             }
         }
 
@@ -293,6 +298,7 @@ public class WhatItIsHotFragment extends ListFragment {
                 HashMap<String, Object>  hmBitmap = new HashMap<String, Object>();
                 hmBitmap.put("place_logo", tmpFile.getPath());
                 hmBitmap.put("position", position);
+                if ( isCancelled() ) return null;
                 return hmBitmap;
             }catch (Exception e) {
                 e.printStackTrace();
@@ -311,4 +317,6 @@ public class WhatItIsHotFragment extends ListFragment {
         }
 
     }
+
+
 }

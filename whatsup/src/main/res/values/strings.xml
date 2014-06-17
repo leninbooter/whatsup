@@ -10,8 +10,7 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="what_was_here">What was here?</string>
-    <string name="whats_hot">What it\'s hot</string>
-    <string name="whats_up_today">What it\'s up today</string>
-    <string name="whats_free">What it\'s free</string>
-
+    <string name="whats_hot">What It\'s Hot</string>
+    <string name="whats_up_today">What It\'s Up For Today</string>
+    <string name="whats_free">Economic Places</string>
 </resources>
