@@ -5,6 +5,8 @@ import android.app.ListFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -43,6 +45,9 @@ import java.util.List;
 public class WhatItIsHotFragment extends ListFragment {
 
     private Params parameters;
+    private DownloadTask downloadTask;
+    private ListViewLoaderTask listViewLoaderTask;
+    private ImageLoaderTask imageLoaderTask;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -53,7 +58,11 @@ public class WhatItIsHotFragment extends ListFragment {
     private String mParam1;
     private String mParam2;
 
-    //private OnFragmentInteractionListener mListener;
+    private OnFragmentWhatItIsHotFragmentListener mCallBack;
+
+    public interface OnFragmentWhatItIsHotFragmentListener {
+        public void ShowNoConnectionMessage();
+    }
 
     /*
      * Use this factory method to create a new instance of
@@ -79,12 +88,12 @@ public class WhatItIsHotFragment extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         parameters = new Params();
+        downloadTask = new DownloadTask();
 
         String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/hotplaces/1";
-        DownloadTask downloadTask = new DownloadTask();
         downloadTask.execute(strUrl);
-
         //placesListView = (ListView) getActivity().findViewById(R.id.lv_hot_places);
     }
 
@@ -92,10 +101,6 @@ public class WhatItIsHotFragment extends ListFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
-        /*if(placesListView == null) {
-            Toast.makeText(getActivity().getBaseContext(), "Null", Toast.LENGTH_SHORT).show();
-        }
         return placesListView;
     }*/
     /*public void setAdapter(SimpleAdapter adapter) {
@@ -108,24 +113,55 @@ public class WhatItIsHotFragment extends ListFragment {
             mListener.onFragmentInteraction(uri);
         }
     }
-
+    */
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mCallBack = (OnFragmentWhatItIsHotFragmentListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnFragmentWhatItIsHotFragmentListener");
         }
     }
-
+    /*
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
     }*/
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("on", "onPause");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d("on", "onStop");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d("on", "onDestroyView");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("on", "onDestroy");
+        downloadTask.cancel(true);
+        imageLoaderTask.cancel(true);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.d("on", "onDetach");
+    }
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -146,6 +182,7 @@ public class WhatItIsHotFragment extends ListFragment {
         try {
             URL url = new URL(strURL);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setConnectTimeout(20000);
             urlConnection.connect();
             iStream = urlConnection.getInputStream();
             BufferedReader br = new BufferedReader( new InputStreamReader( iStream ) );
@@ -153,7 +190,6 @@ public class WhatItIsHotFragment extends ListFragment {
             String line = "";
             while( (line = br.readLine()) != null ) {
                 sb.append(line);
-                //Toast.makeText(getActivity().getBaseContext(), line, Toast.LENGTH_SHORT).show();
             }
             data = sb.toString();
             br.close();
@@ -170,18 +206,23 @@ public class WhatItIsHotFragment extends ListFragment {
 
         @Override
         protected String doInBackground(String... url) {
-            try {
-                data = downloadUrl(url[0]);
-            }catch( Exception e ) {
-                Log.d("Background Task ", e.toString());
-            }
+                try {
+                    data = downloadUrl(url[0]);
+                } catch (Exception e) {
+                    Log.d("Background Task ", e.toString());
+                }
             return data;
         }
 
         @Override
         protected void onPostExecute(String result) {
-            ListViewLoaderTask listViewLoaderTask = new ListViewLoaderTask();
-            listViewLoaderTask.execute(result);
+            if( result != null ) {
+                listViewLoaderTask = new ListViewLoaderTask();
+                listViewLoaderTask.execute(result);
+            }else {
+                //Toast.makeText( getActivity(), R.string.error_connection_server, Toast.LENGTH_LONG).show();
+                mCallBack.ShowNoConnectionMessage();
+            }
         }
     }
     private class ListViewLoaderTask extends  AsyncTask<String, Void, SimpleAdapter> {
@@ -218,7 +259,7 @@ public class WhatItIsHotFragment extends ListFragment {
             for(int i=0; i<adapter.getCount(); i++) {
                 HashMap<String,Object> hm = (HashMap<String, Object>) adapter.getItem(i);
                 HashMap<String, Object> hmDownload = new HashMap<String, Object>();
-                ImageLoaderTask imageLoaderTask = new ImageLoaderTask();
+                imageLoaderTask = new ImageLoaderTask();
 
                 String imgURL = (String) hm.get("gp_icon_path");
                 hmDownload.put("gp_icon_path", imgURL);

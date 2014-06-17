@@ -45,7 +45,6 @@ public class HotPlacesJSONparser {
     }
 
     private HashMap<String, Object> getPlace(JSONObject jPlace) {
-        Log.d("Hot place parser getPlace: ","entrada");
         HashMap<String, Object> place = new HashMap<String, Object>();
         Float fullness, capacity;
 
@@ -57,7 +56,6 @@ public class HotPlacesJSONparser {
             fullness = Float.valueOf( jPlace.getString("fullness") );
             capacity = Float.valueOf( jPlace.getString("capacity") );
             fullness = (fullness / capacity) * 100;
-            Log.d("Fullness: ", String.valueOf(fullness));
             if( fullness >= 0.0 && fullness <= 10.0 ) {
                 place.put("fullness", R.drawable.ten);
             }else {

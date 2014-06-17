@@ -6,6 +6,8 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -36,13 +39,15 @@ import java.util.List;
 
 
 public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements  NavigationDrawerFragment.NavigationDrawerCallbacks,
+                    WhatItIsHotFragment.OnFragmentWhatItIsHotFragmentListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
     private WhatItIsHotFragment HotPlacesFragment;
+    private NoConnectionFragment noConnectionFragment;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
@@ -66,30 +71,39 @@ public class MainActivity extends Activity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        /*Toast.makeText(getBaseContext(), "Entré en onNavigationDrawerItemSelected position: " + String.valueOf(position), Toast.LENGTH_SHORT).show();
-        Log.d("Message","Entré en onNavigationDrawerItemSelected position: " + String.valueOf(position));*/
         FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, WhatItIsHotFragment.newInstance())
-                .commit();
-        /*switch (position) {
+        switch (position) {
             case 0:
                 fragmentManager.beginTransaction()
                         .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                        .addToBackStack(null)
                         .commit();
                 break;
             case 1:
                 fragmentManager.beginTransaction()
                         .replace(R.id.container, WhatItIsUpToday.newInstance())
+                        .addToBackStack(null)
                         .commit();
                 break;
             case 2:
-                fragmentManager.beginTransaction()
-                        .replace(R.id.container, WhatItIsHotFragment.newInstance())
-                        .commit();
+                if ( isOnline() ) {
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.container, WhatItIsHotFragment.newInstance())
+                            .addToBackStack(null)
+                            .commit();
+                }else {
+                    Toast.makeText( getBaseContext(), R.string.cannot_connect, Toast.LENGTH_LONG).show();
+                }
                 break;
-        }*/
+        }
 
+    }
+
+    public void ShowNoConnectionMessage() {
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, noConnectionFragment.newInstance())
+                .commit();
     }
 
     public void onSectionAttached(int number) {
@@ -179,15 +193,10 @@ public class MainActivity extends Activity
         }
     }
 
-    private void LoadHotPlaces() {
-
-        Fragment fragment_what_it_is_hot = new Fragment();
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, fragment_what_it_is_hot)
-                .commit();
-
+    public boolean isOnline() {
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnected());
     }
-
 }
