@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -62,6 +63,7 @@ public class WhatItIsHotFragment extends ListFragment {
 
     public interface OnFragmentWhatItIsHotFragmentListener {
         public void ShowNoConnectionMessage();
+        public void setmTitle(String title);
     }
 
     /*
@@ -85,15 +87,19 @@ public class WhatItIsHotFragment extends ListFragment {
         // Required empty public constructor
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        parameters = new Params();
+    private void load() {
         downloadTask = new DownloadTask();
 
         String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/hotplaces/1";
         downloadTask.execute(strUrl);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        parameters = new Params();
+
+        load();
         //placesListView = (ListView) getActivity().findViewById(R.id.lv_hot_places);
     }
 
@@ -119,6 +125,7 @@ public class WhatItIsHotFragment extends ListFragment {
         super.onAttach(activity);
         try {
             mCallBack = (OnFragmentWhatItIsHotFragmentListener) activity;
+            mCallBack.setmTitle(getString(R.string.whats_hot));
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentWhatItIsHotFragmentListener");
@@ -130,6 +137,19 @@ public class WhatItIsHotFragment extends ListFragment {
         super.onDetach();
         mListener = null;
     }*/
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch ( item.getItemId() ) {
+            case R.id.action_refresh:
+                Toast.makeText(getActivity(), "From WhatItIsHotFragment.", Toast.LENGTH_SHORT).show();
+                load();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
 
     @Override
     public void onPause() {
@@ -224,7 +244,6 @@ public class WhatItIsHotFragment extends ListFragment {
                 listViewLoaderTask = new ListViewLoaderTask();
                 listViewLoaderTask.execute(result);
             }else {
-                //Toast.makeText( getActivity(), R.string.error_connection_server, Toast.LENGTH_LONG).show();
                 mCallBack.ShowNoConnectionMessage();
             }
         }
@@ -308,12 +327,16 @@ public class WhatItIsHotFragment extends ListFragment {
 
         @Override
         protected void onPostExecute(HashMap<String, Object> result) {
-            String path = (String) result.get("place_logo");
-            int position = (Integer) result.get("position");
-            SimpleAdapter adapter = (SimpleAdapter) getListAdapter();
-            HashMap<String, Object> hm = (HashMap<String, Object>) adapter.getItem(position);
-            hm.put("gp_icon", path);
-            adapter.notifyDataSetChanged();
+            if( result != null ) {
+                String path = (String) result.get("place_logo");
+                int position = (Integer) result.get("position");
+                SimpleAdapter adapter = (SimpleAdapter) getListAdapter();
+                HashMap<String, Object> hm = (HashMap<String, Object>) adapter.getItem(position);
+                hm.put("gp_icon", path);
+                adapter.notifyDataSetChanged();
+            }else {
+                Toast.makeText( getActivity(), R.string.lost_connection, Toast.LENGTH_SHORT).show();
+            }
         }
 
     }

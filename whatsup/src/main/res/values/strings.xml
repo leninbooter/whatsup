@@ -7,8 +7,10 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="how_get_there">How to get there?</string>
     <string name="logo">Logotype</string>
+    <string name="lost_connection">Lost connection.\nPlease, try again.</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="refresh">Refresh</string>
     <string name="what_was_here">What was here?</string>
     <string name="whats_hot">What It\'s Hot</string>
     <string name="whats_up_today">What It\'s Up For Today</string>

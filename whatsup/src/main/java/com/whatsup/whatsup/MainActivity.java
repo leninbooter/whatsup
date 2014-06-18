@@ -46,13 +46,40 @@ public class MainActivity extends Activity
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
-    private WhatItIsHotFragment HotPlacesFragment;
-    private NoConnectionFragment noConnectionFragment;
+    private WhatItIsHotFragment HotPlacesFragment; //0 at loadedFragments
+    private NoConnectionFragment noConnectionFragment; //1 at loadedFragments
+    private boolean[] loadedFragments = new boolean[2];;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
+
+    public void loadWhatItIsHotFragment() {
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, WhatItIsHotFragment.newInstance(), "HotPlaces")
+                .addToBackStack(null)
+                .commit();
+        resetLoadedFragments();
+        loadedFragments[0] = true;
+    }
+
+    public void loadWhatItIsUpTodayFragment() {
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, WhatItIsUpToday.newInstance(), "ForToday")
+                .addToBackStack(null)
+                .commit();
+        resetLoadedFragments();
+        loadedFragments[1] = true;
+    }
+
+    public void resetLoadedFragments() {
+        for( int i = 0; i < loadedFragments.length; i++ ){
+            loadedFragments[i] = false;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,39 +98,23 @@ public class MainActivity extends Activity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        FragmentManager fragmentManager = getFragmentManager();
+
         switch (position) {
             case 0:
-                fragmentManager.beginTransaction()
-                        .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                        .addToBackStack(null)
-                        .commit();
-                break;
-            case 1:
-                fragmentManager.beginTransaction()
-                        .replace(R.id.container, WhatItIsUpToday.newInstance())
-                        .addToBackStack(null)
-                        .commit();
-                break;
-            case 2:
                 if ( isOnline() ) {
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.container, WhatItIsHotFragment.newInstance())
-                            .addToBackStack(null)
-                            .commit();
+                    loadWhatItIsHotFragment();
                 }else {
                     Toast.makeText( getBaseContext(), R.string.cannot_connect, Toast.LENGTH_LONG).show();
                 }
                 break;
+            case 1:
+                loadWhatItIsUpTodayFragment();
+                break;
+            case 2:
+
+                break;
         }
 
-    }
-
-    public void ShowNoConnectionMessage() {
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, noConnectionFragment.newInstance())
-                .commit();
     }
 
     public void onSectionAttached(int number) {
@@ -146,13 +157,40 @@ public class MainActivity extends Activity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            case R.id.action_refresh:
+                    for( int i = 0; i < loadedFragments.length; i++ ) {
+                        if( loadedFragments[i] ) {
+                            switch ( i ) {
+                                case 0:
+                                    loadWhatItIsHotFragment();
+                                    break;
+                            }
+                        }
+                    }
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    public boolean isOnline() {
+        ConnectivityManager connMgr = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return (networkInfo != null && networkInfo.isConnected());
+    }
+
+    public void ShowNoConnectionMessage() {
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, noConnectionFragment.newInstance())
+                .commit();
+    }
+    public void setmTitle(String title) {
+        mTitle = title;
+    }
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -191,12 +229,5 @@ public class MainActivity extends Activity
             ((MainActivity) activity).onSectionAttached(
                     getArguments().getInt(ARG_SECTION_NUMBER));
         }
-    }
-
-    public boolean isOnline() {
-        ConnectivityManager connMgr = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        return (networkInfo != null && networkInfo.isConnected());
     }
 }
