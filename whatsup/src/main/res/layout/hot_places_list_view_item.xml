@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <ImageView
         android:id="@+id/place_logo"
         android:layout_width="55px"
@@ -81,4 +82,20 @@
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         />
+    
+    <!-- Hidden fields -->
+    <TextView
+        android:id="@+id/place_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        />
+
+    <TextView
+        android:id="@+id/geolocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <!-- /Hidden fields -->
+    
 </RelativeLayout>

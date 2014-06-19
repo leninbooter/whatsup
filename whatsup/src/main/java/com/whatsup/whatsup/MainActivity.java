@@ -5,38 +5,18 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
-import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-
 
 public class MainActivity extends Activity
         implements  NavigationDrawerFragment.NavigationDrawerCallbacks,
@@ -46,33 +26,49 @@ public class MainActivity extends Activity
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
-    private WhatItIsHotFragment HotPlacesFragment; //0 at loadedFragments
-    private NoConnectionFragment noConnectionFragment; //1 at loadedFragments
-    private boolean[] loadedFragments = new boolean[2];;
+
+    /**
+     * Control of loaded fragments
+     *
+     * NoConnectionFragment: 0 at loadedFragments
+     * HotPlacesFragment: 1 at loadedFragments
+     * whatItIsUpToday: 2 at loadedFragments
+     */
+    private boolean[] loadedFragments = new boolean[3];;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
 
-    public void loadWhatItIsHotFragment() {
+    public void ShowNoConnectionMessage() {
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.container, WhatItIsHotFragment.newInstance(), "HotPlaces")
-                .addToBackStack(null)
+                .replace(R.id.container, NoConnectionFragment.newInstance())
                 .commit();
-        resetLoadedFragments();
         loadedFragments[0] = true;
+    }
+
+    public void loadWhatItIsHotFragment() {
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.container, WhatItIsHotFragment.newInstance(), "HotPlaces");
+        if( !loadedFragments[0] )
+            fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+        resetLoadedFragments();
+        loadedFragments[1] = true;
     }
 
     public void loadWhatItIsUpTodayFragment() {
         FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, WhatItIsUpToday.newInstance(), "ForToday")
-                .addToBackStack(null)
-                .commit();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.container, WhatItIsUpToday.newInstance(), "ForToday");
+        if( !loadedFragments[0] )
+            fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
         resetLoadedFragments();
-        loadedFragments[1] = true;
+        loadedFragments[2] = true;
     }
 
     public void resetLoadedFragments() {
@@ -95,6 +91,7 @@ public class MainActivity extends Activity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
     }
+
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
@@ -164,7 +161,7 @@ public class MainActivity extends Activity
                     for( int i = 0; i < loadedFragments.length; i++ ) {
                         if( loadedFragments[i] ) {
                             switch ( i ) {
-                                case 0:
+                                case 1:
                                     loadWhatItIsHotFragment();
                                     break;
                             }
@@ -182,12 +179,7 @@ public class MainActivity extends Activity
         return (networkInfo != null && networkInfo.isConnected());
     }
 
-    public void ShowNoConnectionMessage() {
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, noConnectionFragment.newInstance())
-                .commit();
-    }
+
     public void setmTitle(String title) {
         mTitle = title;
     }

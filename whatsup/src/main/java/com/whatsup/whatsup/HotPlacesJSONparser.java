@@ -53,6 +53,8 @@ public class HotPlacesJSONparser {
             place.put("gp_formatted_address", jPlace.getString("gp_formatted_address"));
             place.put("gp_icon", R.drawable.blank );
             place.put("gp_icon_path", jPlace.getString("gp_icon"));
+            place.put("place_id", jPlace.getString("pk_place_id"));
+            place.put("geolocation", jPlace.getString("geolocation"));
             fullness = Float.valueOf( jPlace.getString("fullness") );
             capacity = Float.valueOf( jPlace.getString("capacity") );
             fullness = (fullness / capacity) * 100;

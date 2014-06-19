@@ -16,8 +16,10 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
@@ -49,6 +51,7 @@ public class WhatItIsHotFragment extends ListFragment {
     private DownloadTask downloadTask;
     private ListViewLoaderTask listViewLoaderTask;
     private ImageLoaderTask imageLoaderTask[];
+    private Utilis utilities;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -58,6 +61,7 @@ public class WhatItIsHotFragment extends ListFragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
 
     private OnFragmentWhatItIsHotFragmentListener mCallBack;
 
@@ -150,6 +154,21 @@ public class WhatItIsHotFragment extends ListFragment {
 
         }
     }
+
+    /*@Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+
+        Toast.makeText(getActivity(), "Button " + String.valueOf( ((Button) v).getId() ) + " on " + String.valueOf(id) + " position was clicked " + ((Button) v).getText(), Toast.LENGTH_SHORT).show();
+        switch ( v.getId() ) {
+            case R.id.how_get_there:
+                Toast.makeText(getActivity(), "Button how_get_there on " + String.valueOf(id) + " position was clicked", Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.what_washere:
+                Toast.makeText(getActivity(), "Button what_washere on " + String.valueOf(id) + " position was clicked", Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }*/
 
     @Override
     public void onPause() {
@@ -269,9 +288,36 @@ public class WhatItIsHotFragment extends ListFragment {
             }catch ( Exception e ) {
                 Log.d("Exception", e.toString());
             }
-            String[] from = { "name", "gp_formatted_address", "gp_icon", "fullness" };
-            int[] to = { R.id.place_name, R.id.place_address, R.id.place_logo, R.id.place_fullness };
-            SimpleAdapter adapter = new SimpleAdapter(getActivity(), places, R.layout.hot_places_list_view_item, from, to);
+            String[] from = { "name", "gp_formatted_address", "gp_icon", "fullness", "place_id", "geolocation"};
+            int[] to = { R.id.place_name, R.id.place_address, R.id.place_logo, R.id.place_fullness, R.id.place_id, R.id.geolocation};
+            SimpleAdapter adapter = new SimpleAdapter(getActivity(), places, R.layout.hot_places_list_view_item, from, to)
+            {
+                @Override
+                public View getView(final int position, View convertView, ViewGroup parent) {
+                    View v = super.getView(position, convertView, parent);
+                    TextView geolocation = (TextView)v.findViewById(R.id.geolocation);
+                    final CharSequence csgeo = geolocation.getText();
+                    String strgeo = csgeo.toString();
+                    final String[] strarrgeo = strgeo.split(" ");
+                    strarrgeo[0] = strarrgeo[0].substring(5,strarrgeo.length - 1);
+                    strarrgeo[1] = strarrgeo[1].substring(0,strarrgeo.length - 2);
+                    Button b = (Button)v.findViewById(R.id.how_get_there);
+                    b.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Toast.makeText(getActivity(),"how_get_there from " + String.valueOf(position) + " that is at " + strarrgeo[0] + " " + strarrgeo[1],Toast.LENGTH_SHORT).show();
+                            utilities.getRouteFromMaps(getActivity(), strarrgeo[0], strarrgeo[1]);
+                        }
+                    });
+                    return v;
+                }
+
+                @Override
+                public boolean isEnabled(int position) {
+                    super.isEnabled(position);
+                    return false;
+                }
+            };
 
             return adapter;
         }
