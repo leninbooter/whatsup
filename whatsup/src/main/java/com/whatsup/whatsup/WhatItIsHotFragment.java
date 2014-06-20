@@ -51,7 +51,6 @@ public class WhatItIsHotFragment extends ListFragment {
     private DownloadTask downloadTask;
     private ListViewLoaderTask listViewLoaderTask;
     private ImageLoaderTask imageLoaderTask[];
-    private Utilis utilities;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -295,18 +294,17 @@ public class WhatItIsHotFragment extends ListFragment {
                 @Override
                 public View getView(final int position, View convertView, ViewGroup parent) {
                     View v = super.getView(position, convertView, parent);
-                    TextView geolocation = (TextView)v.findViewById(R.id.geolocation);
-                    final CharSequence csgeo = geolocation.getText();
-                    String strgeo = csgeo.toString();
-                    final String[] strarrgeo = strgeo.split(" ");
-                    strarrgeo[0] = strarrgeo[0].substring(5,strarrgeo.length - 1);
-                    strarrgeo[1] = strarrgeo[1].substring(0,strarrgeo.length - 2);
-                    Button b = (Button)v.findViewById(R.id.how_get_there);
+                    final TextView geolocation = (TextView)v.findViewById(R.id.geolocation);
+                    final Button b = (Button)v.findViewById(R.id.how_get_there);
                     b.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Toast.makeText(getActivity(),"how_get_there from " + String.valueOf(position) + " that is at " + strarrgeo[0] + " " + strarrgeo[1],Toast.LENGTH_SHORT).show();
-                            utilities.getRouteFromMaps(getActivity(), strarrgeo[0], strarrgeo[1]);
+                            final CharSequence csgeo = geolocation.getText();
+                            String strgeo = csgeo.toString();
+                            final String[] strarrgeo = new String[2];
+                            strarrgeo[0] = strgeo.substring(6,strgeo.indexOf(" "));
+                            strarrgeo[1] = strgeo.substring(strgeo.indexOf(" ") + 1, strgeo.length() - 1);
+                            Utilis.getRouteFromMaps(getActivity(), strarrgeo[0], strarrgeo[1]);
                         }
                     });
                     return v;
