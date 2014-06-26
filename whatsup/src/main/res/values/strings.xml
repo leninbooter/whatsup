@@ -5,18 +5,32 @@
     <string name="action_settings">Settings</string>
     <string name="app_name">WhatsUp</string>
     <string name="cannot_connect">Connection error to server.\nPlease, make sure you have Internet access through wi-fi or mobile data and try again.</string>
+    <string name="friday">Friday</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="how_get_there">How to get there?</string>
+    <string name="how_get_there">How to get here?</string>
     <string name="logo">Logotype</string>
     <string name="lost_connection">Lost connection.\nPlease, try again.</string>
+    <string name="luxury_places">Luxury Places</string>
+    <string name="monday">Monday</string>
+    <string name="more">More...</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="no_maps">Google Maps has to be installed to use this functionality.</string>
     <string name="refresh">Refresh</string>
+    <string name="saturday">Saturday</string>
+    <string name="standard_places">Standard Places</string>
+    <string name="specials">Specials</string>
+    <string name="sunday">Sunday</string>
     <string name="what_was_here">What was here?</string>
     <string name="whats_hot">What It\'s Hot</string>
     <string name="whats_up_today">What It\'s Up For Today</string>
+    <string name="what_is_at">What is at </string>
+    <string name="what_is_here">What is here?</string>
     <string name="whats_free">Economic Places</string>
-    <string name="title_activity_place">Place</string>
+    <string name="title_activity_place">PlaceActivity</string>
+    <string name="thursday">Thursday</string>
+    <string name="tuesday">Tuesday</string>
     <string name="hello_world">Hello world!</string>
+    <string name="wednsday">Wednsday</string>
 
 </resources>

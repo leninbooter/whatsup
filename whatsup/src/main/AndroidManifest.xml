@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Place"
+            android:name=".PlaceActivity"
             android:label="@string/title_activity_place"
             android:parentActivityName=".MainActivity" >
             <meta-data

@@ -1,6 +1,8 @@
 package com.whatsup.whatsup;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ListFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -17,6 +19,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -32,6 +36,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -153,21 +158,6 @@ public class WhatItIsHotFragment extends ListFragment {
 
         }
     }
-
-    /*@Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-
-        Toast.makeText(getActivity(), "Button " + String.valueOf( ((Button) v).getId() ) + " on " + String.valueOf(id) + " position was clicked " + ((Button) v).getText(), Toast.LENGTH_SHORT).show();
-        switch ( v.getId() ) {
-            case R.id.how_get_there:
-                Toast.makeText(getActivity(), "Button how_get_there on " + String.valueOf(id) + " position was clicked", Toast.LENGTH_SHORT).show();
-                break;
-            case R.id.what_washere:
-                Toast.makeText(getActivity(), "Button what_washere on " + String.valueOf(id) + " position was clicked", Toast.LENGTH_SHORT).show();
-                break;
-        }
-    }*/
 
     @Override
     public void onPause() {
@@ -294,8 +284,12 @@ public class WhatItIsHotFragment extends ListFragment {
                 @Override
                 public View getView(final int position, View convertView, ViewGroup parent) {
                     View v = super.getView(position, convertView, parent);
+                    final TextView place_id = (TextView)v.findViewById(R.id.place_id);
+                    final TextView place_name = (TextView)v.findViewById(R.id.place_name);
                     final TextView geolocation = (TextView)v.findViewById(R.id.geolocation);
                     final Button b = (Button)v.findViewById(R.id.how_get_there);
+                    final Button b_wih = (Button)v.findViewById(R.id.what_is_here);
+
                     b.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -307,6 +301,20 @@ public class WhatItIsHotFragment extends ListFragment {
                             Utilis.getRouteFromMaps(getActivity(), strarrgeo[0], strarrgeo[1]);
                         }
                     });
+
+                    b_wih.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Calendar rightNow = Calendar.getInstance();
+                            String datetime = String.valueOf(rightNow.get(rightNow.YEAR)) + "-" + String.valueOf(rightNow.get(rightNow.MONTH) + 1) + "-" + String.valueOf(rightNow.get(rightNow.DAY_OF_MONTH)) + " " + String.valueOf(rightNow.get(rightNow.HOUR_OF_DAY)) + ":" + String.valueOf(rightNow.get(rightNow.MINUTE)) + ":" + String.valueOf(rightNow.get(rightNow.SECOND));
+                            FragmentManager fragmentManager = getFragmentManager();
+                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                            fragmentTransaction.replace(R.id.container, SpecialsFragment.newInstance(place_id.getText().toString(), place_name.getText().toString(), datetime));
+                            fragmentTransaction.addToBackStack(null);
+                            fragmentTransaction.commit();
+                        }
+                    });
+
                     return v;
                 }
 

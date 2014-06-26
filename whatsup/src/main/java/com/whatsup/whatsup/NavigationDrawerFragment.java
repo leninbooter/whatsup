@@ -105,6 +105,7 @@ public class NavigationDrawerFragment extends Fragment {
                 new String[]{
                         getString(R.string.whats_hot),
                         getString(R.string.whats_up_today),
+                        getString(R.string.luxury_places),
                         getString(R.string.whats_free),
                 }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);

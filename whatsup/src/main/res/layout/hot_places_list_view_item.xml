@@ -3,13 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <RelativeLayout
+        android:id="@+id/place_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
     <ImageView
         android:id="@+id/place_logo"
-        android:layout_width="55px"
-        android:layout_height="55px"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_centerVertical="false"
-        android:layout_marginRight="10px"
-        android:layout_marginLeft="10px"
+        android:layout_marginRight="5dp"
+        android:layout_marginLeft="5dp"
         android:src="@drawable/blank"
         android:contentDescription="@string/logo" />
 
@@ -24,65 +28,72 @@
 
     <TextView
         style="@style/Addresses"
+        android:text=""
         android:id="@+id/place_address"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginRight="100px"
+        android:layout_marginRight="70dp"
         android:paddingBottom="5px"
         android:layout_toRightOf="@id/place_logo"
         android:layout_below="@id/place_name"/>
 
-    <!-- <TextView
-        style="@style/Controls"
-        android:id="@+id/how_get_there"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/how_get_there"
-        android:layout_toRightOf="@id/place_logo"
-        android:layout_below="@id/place_address"
-        android:layout_alignParentBottom="true"
-        android:gravity="bottom"/> -->
-
-    <!--<TextView
-        style="@style/Controls"
-        android:id="@+id/what_washere"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/what_was_here"
-        android:layout_toRightOf="@id/how_get_there"
-        android:layout_below="@id/place_address"
-        android:layout_alignParentBottom="true"
-        android:gravity="bottom"
-        android:layout_marginLeft="20px"/> style="@style/Buttons"-->
-    <Button
-        style="@style/Buttons"
-        android:id="@+id/how_get_there"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/how_get_there"
-        android:layout_toRightOf="@id/place_logo"
-        android:layout_below="@id/place_address"
-        android:layout_alignParentBottom="true" />
-
-    <Button
-        style="@style/Buttons"
-        android:id="@+id/what_washere"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/what_was_here"
-        android:layout_toRightOf="@id/how_get_there"
-        android:layout_below="@id/place_address"
-        android:layout_alignParentBottom="true" />
-
     <ImageView
         android:id="@+id/place_fullness"
-        android:layout_width="100px"
-        android:layout_height="100px"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:padding="5px"
         android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
+        android:layout_centerVertical="false"
         />
-    
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/place_info"
+        android:gravity="center_horizontal"
+        android:layout_alignParentBottom="false"
+        android:padding="0dp"
+        >
+    <Button
+        style="@style/Buttons"
+        android:id="@+id/how_get_there"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/how_get_there"
+        android:layout_margin="0dp"
+        />
+    <View
+        android:layout_width="5dp"
+        android:layout_height="match_parent"
+        android:layout_margin="0dp"
+        />
+    <Button
+        style="@style/Buttons"
+        android:id="@+id/what_was_here"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/what_was_here"
+        android:layout_toRightOf="@id/how_get_there"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="0dp"/>
+        <View
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:layout_margin="0dp"
+            />
+        <Button
+        style="@style/Buttons"
+        android:id="@+id/what_is_here"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/what_is_here"
+        android:layout_toRightOf="@id/what_was_here"
+        android:layout_margin="0dp"
+        android:layout_marginLeft="100px"/>
+    </LinearLayout>
+
     <!-- Hidden fields -->
     <TextView
         android:id="@+id/place_id"
