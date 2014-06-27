@@ -16,11 +16,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
+import android.widget.Switch;
 import android.widget.Toast;
+
+import java.util.Calendar;
 
 public class MainActivity extends Activity
         implements  NavigationDrawerFragment.NavigationDrawerCallbacks,
-                    WhatItIsHotFragment.OnFragmentWhatItIsHotFragmentListener {
+                    WhatItIsHotFragment.OnFragmentWhatItIsHotFragmentListener,
+                    SpecialsFragment.OnFragmentSpecialsFragmentListener {
+
+    private static String NO_CONNECTION = "noconnection";
+    private static String HOT_PLACES = "hotplaces";
+    private static String WHAT_IS_HERE = "whatishere";
+    private static String FOR_TODAY = "fortoday";
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -33,48 +42,101 @@ public class MainActivity extends Activity
      * NoConnectionFragment: 0 at loadedFragments
      * HotPlacesFragment: 1 at loadedFragments
      * whatItIsUpToday: 2 at loadedFragments
+     * private boolean[] loadedFragments = new boolean[3];
      */
-    private boolean[] loadedFragments = new boolean[3];;
+
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
 
+    private String currentFragmentTag = "";
+
+    private String previousFragmentTag = null;
+
+    public void setCurrentFragmentTag(String tag) {
+        currentFragmentTag = tag;
+    }
+
     public void ShowNoConnectionMessage() {
+        previousFragmentTag = currentFragmentTag;
+        setCurrentFragmentTag(NO_CONNECTION);
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.container, NoConnectionFragment.newInstance())
+                .replace(R.id.container, NoConnectionFragment.newInstance(), currentFragmentTag)
                 .commit();
-        loadedFragments[0] = true;
     }
 
     public void loadWhatItIsHotFragment() {
+        if( currentFragmentTag.equals(HOT_PLACES)) {
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.remove( getFragmentManager().findFragmentByTag(currentFragmentTag) );
+            fragmentTransaction.commit();
+        }
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.container, WhatItIsHotFragment.newInstance(), "HotPlaces");
-        if( !loadedFragments[0] )
+        fragmentTransaction.replace(R.id.container, WhatItIsHotFragment.newInstance(), HOT_PLACES);
+        if( !currentFragmentTag.equals(NO_CONNECTION) && !currentFragmentTag.equals(HOT_PLACES))
             fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-        resetLoadedFragments();
-        loadedFragments[1] = true;
+        previousFragmentTag = null;
+    }
+
+    public void loadSpecialsFragment(String place_id, String place_name) {
+        Calendar rightNow = Calendar.getInstance();
+        String datetime = String.valueOf(rightNow.get(rightNow.YEAR)) + "-" + String.valueOf(rightNow.get(rightNow.MONTH) + 1) + "-" + String.valueOf(rightNow.get(rightNow.DAY_OF_MONTH)) + " " + String.valueOf(rightNow.get(rightNow.HOUR_OF_DAY)) + ":" + String.valueOf(rightNow.get(rightNow.MINUTE)) + ":" + String.valueOf(rightNow.get(rightNow.SECOND));
+
+        if( place_id == null && place_name == null ) {
+            place_id = getFragmentManager().findFragmentByTag(currentFragmentTag).getArguments().getString("place_id");
+            place_name = getFragmentManager().findFragmentByTag(currentFragmentTag).getArguments().getString("place_name");
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.remove( getFragmentManager().findFragmentByTag(currentFragmentTag) );
+            fragmentTransaction.commit();
+        }
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.container, SpecialsFragment.newInstance(place_id, place_name, datetime), WHAT_IS_HERE);
+        if( !currentFragmentTag.equals(NO_CONNECTION) && !currentFragmentTag.equals(WHAT_IS_HERE))
+            fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+        previousFragmentTag = null;
     }
 
     public void loadWhatItIsUpTodayFragment() {
+        if( currentFragmentTag.equals(FOR_TODAY)) {
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.remove( getFragmentManager().findFragmentByTag(currentFragmentTag) );
+            fragmentTransaction.commit();
+        }
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.container, WhatItIsUpToday.newInstance(), "ForToday");
-        if( !loadedFragments[0] )
+        fragmentTransaction.replace(R.id.container, WhatItIsUpToday.newInstance(), FOR_TODAY);
+        if( !currentFragmentTag.equals(NO_CONNECTION) && currentFragmentTag.equals(FOR_TODAY) )
             fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
-        resetLoadedFragments();
-        loadedFragments[2] = true;
+        setCurrentFragmentTag(FOR_TODAY);
+        previousFragmentTag = null;
     }
 
-    public void resetLoadedFragments() {
-        for( int i = 0; i < loadedFragments.length; i++ ){
-            loadedFragments[i] = false;
-        }
+    private void refreshFragment(String fragmentTag) {
+            if( fragmentTag.equals(HOT_PLACES) )
+                loadWhatItIsHotFragment();
+            else {
+                if( fragmentTag.equals(WHAT_IS_HERE) )
+                    loadSpecialsFragment(null, null);
+                else {
+                    if( fragmentTag.equals(FOR_TODAY) )
+                        loadWhatItIsUpTodayFragment();
+                    else {
+                        return;
+                    }
+                }
+            }
+        Toast.makeText(getBaseContext(), currentFragmentTag, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -158,18 +220,24 @@ public class MainActivity extends Activity
             case R.id.action_settings:
                 return true;
             case R.id.action_refresh:
-                    for( int i = 0; i < loadedFragments.length; i++ ) {
-                        if( loadedFragments[i] ) {
-                            switch ( i ) {
-                                case 1:
-                                    loadWhatItIsHotFragment();
-                                    break;
-                            }
-                        }
-                    }
+                // Reload current fragment
+                if( previousFragmentTag == null)
+                    refreshFragment(currentFragmentTag);
+                else
+                    refreshFragment(previousFragmentTag);
+
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.remove( getFragmentManager().findFragmentByTag(currentFragmentTag) );
+        fragmentTransaction.commit();
+        super.onBackPressed();
     }
 
     public boolean isOnline() {
@@ -183,6 +251,7 @@ public class MainActivity extends Activity
     public void setmTitle(String title) {
         mTitle = title;
     }
+
     /**
      * A placeholder fragment containing a simple view.
      */

@@ -1,5 +1,6 @@
 package com.whatsup.whatsup;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -44,15 +45,16 @@ public class SpecialsFragment extends ListFragment {
     private static final String PLACE_NAME = "place_name";
     private static final String DATETIME = "datetime";
 
-    private OnFragmentInteractionListener mListener;
+    private OnFragmentSpecialsFragmentListener mListener;
     private View mSpecialsListView;
     private Params parameters;
     private DownloadTask downloadTask;
     private ListViewLoaderTask listViewLoaderTask;
-    private OnFragmentWhatItIsHotFragmentListener mCallBack;
+    private OnFragmentSpecialsFragmentListener mCallBack;
 
-    public interface OnFragmentWhatItIsHotFragmentListener {
+    public interface OnFragmentSpecialsFragmentListener {
         public void ShowNoConnectionMessage();
+        public void setCurrentFragmentTag(String tag);
     }
 
     // TODO: Rename and change types of parameters
@@ -99,22 +101,53 @@ public class SpecialsFragment extends ListFragment {
         return mSpecialsListView;
     }
 
-    /*
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (OnFragmentSpecialsFragmentListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                 + " must implement OnFragmentInteractionListener");
         }
-    }*/
+    }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        downloadTask.cancel(true);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mListener.setCurrentFragmentTag("whatishere");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d("on", "onStop");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d("on", "onDestroyView");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("on", "onDestroy");
+
     }
 
     /**
@@ -152,7 +185,7 @@ public class SpecialsFragment extends ListFragment {
                 listViewLoaderTask = new ListViewLoaderTask();
                 listViewLoaderTask.execute(result);
             }else {
-                mCallBack.ShowNoConnectionMessage();
+                mListener.ShowNoConnectionMessage();
             }
         }
     }

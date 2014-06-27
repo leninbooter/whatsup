@@ -70,8 +70,10 @@ public class WhatItIsHotFragment extends ListFragment {
     private OnFragmentWhatItIsHotFragmentListener mCallBack;
 
     public interface OnFragmentWhatItIsHotFragmentListener {
+        public void loadSpecialsFragment(String place_id, String place_name);
         public void ShowNoConnectionMessage();
         public void setmTitle(String title);
+        public void setCurrentFragmentTag(String tag);
     }
 
     /*
@@ -131,6 +133,7 @@ public class WhatItIsHotFragment extends ListFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        Log.d("on","Attach");
         try {
             mCallBack = (OnFragmentWhatItIsHotFragmentListener) activity;
             mCallBack.setmTitle(getString(R.string.whats_hot));
@@ -139,12 +142,6 @@ public class WhatItIsHotFragment extends ListFragment {
                     + " must implement OnFragmentWhatItIsHotFragmentListener");
         }
     }
-    /*
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }*/
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -157,6 +154,12 @@ public class WhatItIsHotFragment extends ListFragment {
                 return super.onOptionsItemSelected(item);
 
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mCallBack.setCurrentFragmentTag("hotplaces");
     }
 
     @Override
@@ -192,6 +195,7 @@ public class WhatItIsHotFragment extends ListFragment {
     @Override
     public void onDetach() {
         super.onDetach();
+        mCallBack = null;
         Log.d("on", "onDetach");
     }
     /**
@@ -305,13 +309,7 @@ public class WhatItIsHotFragment extends ListFragment {
                     b_wih.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Calendar rightNow = Calendar.getInstance();
-                            String datetime = String.valueOf(rightNow.get(rightNow.YEAR)) + "-" + String.valueOf(rightNow.get(rightNow.MONTH) + 1) + "-" + String.valueOf(rightNow.get(rightNow.DAY_OF_MONTH)) + " " + String.valueOf(rightNow.get(rightNow.HOUR_OF_DAY)) + ":" + String.valueOf(rightNow.get(rightNow.MINUTE)) + ":" + String.valueOf(rightNow.get(rightNow.SECOND));
-                            FragmentManager fragmentManager = getFragmentManager();
-                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                            fragmentTransaction.replace(R.id.container, SpecialsFragment.newInstance(place_id.getText().toString(), place_name.getText().toString(), datetime));
-                            fragmentTransaction.addToBackStack(null);
-                            fragmentTransaction.commit();
+                            mCallBack.loadSpecialsFragment(place_id.getText().toString(), place_name.getText().toString());
                         }
                     });
 
