@@ -15,6 +15,7 @@
     <string name="more">Más...</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="no_info">¡Lo sentimos! No hay información disponible para este sitio en este momento; pero, ¡ve ahora para allá! y averigualo tú mismo.</string>
     <string name="no_maps">Google Maps debe estar instalado para utilizar esta funcionalidad.</string>
     <string name="refresh">Recargar</string>
     <string name="saturday">Sábado</string>
@@ -25,11 +26,11 @@
     <string name="tuesday">Martes</string>
     <string name="wednsday">Miercoles</string>
     <string name="what_was_here">¿Qué hubo aquí?</string>
+    <string name="what_was_at">¿Qué paso ent</string>
     <string name="whats_hot">Lugares Preferidos</string>
     <string name="whats_up_today">Lo Que Hay Para hoy</string>
     <string name="what_is_at">¿Qué hay en </string>
     <string name="what_is_here">¿Qué hay aquí?</string>
     <string name="whats_free">Lugares Económicos</string>
-
 
 </resources>

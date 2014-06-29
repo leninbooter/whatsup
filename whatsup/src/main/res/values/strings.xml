@@ -15,6 +15,7 @@
     <string name="more">More...</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="no_info">We are sorry! No information is available right now for this place; but, ¡go there! and take a look by yourself.</string>
     <string name="no_maps">Google Maps has to be installed to use this functionality.</string>
     <string name="refresh">Refresh</string>
     <string name="saturday">Saturday</string>
@@ -22,6 +23,7 @@
     <string name="specials">Specials</string>
     <string name="sunday">Sunday</string>
     <string name="what_was_here">What was here?</string>
+    <string name="what_was_at">What was at</string>
     <string name="whats_hot">What It\'s Hot</string>
     <string name="whats_up_today">What It\'s Up For Today</string>
     <string name="what_is_at">What is at </string>

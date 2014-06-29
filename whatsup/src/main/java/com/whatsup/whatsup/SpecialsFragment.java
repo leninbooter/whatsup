@@ -212,7 +212,11 @@ public class SpecialsFragment extends ListFragment {
 
         @Override
         protected void onPostExecute(SimpleAdapter adapter) {
+            getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
             setListAdapter(adapter);
+            if( adapter.getCount() == 0 ) {
+                getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
+            }
         }
 
     }

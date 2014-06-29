@@ -55,13 +55,15 @@ public class MainActivity extends Activity
 
     private String previousFragmentTag = null;
 
-    public void setCurrentFragmentTag(String tag) {
-        currentFragmentTag = tag;
+    public void setCurrentFragmentTag(String tag)
+    {
+            currentFragmentTag = tag;
+            previousFragmentTag = null;
     }
 
     public void ShowNoConnectionMessage() {
         previousFragmentTag = currentFragmentTag;
-        setCurrentFragmentTag(NO_CONNECTION);
+        currentFragmentTag = NO_CONNECTION;
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction()
                 .replace(R.id.container, NoConnectionFragment.newInstance(), currentFragmentTag)
@@ -78,7 +80,7 @@ public class MainActivity extends Activity
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.container, WhatItIsHotFragment.newInstance(), HOT_PLACES);
-        if( !currentFragmentTag.equals(NO_CONNECTION) && !currentFragmentTag.equals(HOT_PLACES))
+        if( !currentFragmentTag.equals(NO_CONNECTION) && !currentFragmentTag.equals(HOT_PLACES) && !currentFragmentTag.equals(""))
             fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         previousFragmentTag = null;
