@@ -71,6 +71,7 @@ public class WhatItIsHotFragment extends ListFragment {
 
     public interface OnFragmentWhatItIsHotFragmentListener {
         public void loadSpecialsFragment(String place_id, String place_name);
+        public void loadEventsFragment(String place_id, String place_name);
         public void ShowNoConnectionMessage();
         public void setmTitle(String title);
         public void setCurrentFragmentTag(String tag);
@@ -293,6 +294,7 @@ public class WhatItIsHotFragment extends ListFragment {
                     final TextView geolocation = (TextView)v.findViewById(R.id.geolocation);
                     final Button b = (Button)v.findViewById(R.id.how_get_there);
                     final Button b_wih = (Button)v.findViewById(R.id.what_is_here);
+                    final Button b_wwh = (Button)v.findViewById(R.id.what_was_here);
 
                     b.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -313,6 +315,12 @@ public class WhatItIsHotFragment extends ListFragment {
                         }
                     });
 
+                    b_wwh.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            mCallBack.loadEventsFragment(place_id.getText().toString(), place_name.getText().toString());
+                        }
+                    });
                     return v;
                 }
 
@@ -329,7 +337,7 @@ public class WhatItIsHotFragment extends ListFragment {
         @Override
         protected void onPostExecute(SimpleAdapter adapter) {
             setListAdapter(adapter);
-            imageLoaderTask = new ImageLoaderTask[adapter.getCount()];
+            /*imageLoaderTask = new ImageLoaderTask[adapter.getCount()];
             for(int i=0; i<adapter.getCount(); i++) {
                 HashMap<String,Object> hm = (HashMap<String, Object>) adapter.getItem(i);
                 HashMap<String, Object> hmDownload = new HashMap<String, Object>();
@@ -339,7 +347,7 @@ public class WhatItIsHotFragment extends ListFragment {
                 hmDownload.put("gp_icon_path", imgURL);
                 hmDownload.put("position", i);
                 imageLoaderTask[i].execute(hmDownload);
-            }
+            }*/
         }
 
     }
@@ -353,22 +361,24 @@ public class WhatItIsHotFragment extends ListFragment {
             int position = (Integer) hm[0].get("position");
             URL url;
             try {
-                url = new URL(imgUrl);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.connect();
-                iStream = urlConnection.getInputStream();
                 File cacheDirectory = getActivity().getCacheDir();
                 File tmpFile = new File(cacheDirectory.getPath() + "/wpa_" + position + ".png");
-                FileOutputStream fOutStream = new FileOutputStream(tmpFile);
-                Bitmap b = BitmapFactory.decodeStream(iStream);
-                b.compress(Bitmap.CompressFormat.PNG,100,fOutStream);
-                fOutStream.flush();
-                fOutStream.close();
-                HashMap<String, Object>  hmBitmap = new HashMap<String, Object>();
-                hmBitmap.put("place_logo", tmpFile.getPath());
-                hmBitmap.put("position", position);
-                if ( isCancelled() ) return null;
-                return hmBitmap;
+                if( !tmpFile.exists() ) {
+                    url = new URL(imgUrl);
+                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.connect();
+                    iStream = urlConnection.getInputStream();
+                    FileOutputStream fOutStream = new FileOutputStream(tmpFile);
+                    Bitmap b = BitmapFactory.decodeStream(iStream);
+                    b.compress(Bitmap.CompressFormat.PNG, 100, fOutStream);
+                    fOutStream.flush();
+                    fOutStream.close();
+                }
+                 HashMap<String, Object> hmBitmap = new HashMap<String, Object>();
+                 hmBitmap.put("place_logo", tmpFile.getPath());
+                 hmBitmap.put("position", position);
+                 if (isCancelled()) return null;
+                 return hmBitmap;
             }catch (Exception e) {
                 e.printStackTrace();
             }

@@ -83,12 +83,6 @@ public class SpecialsFragment extends ListFragment {
         downloadTask = new DownloadTask();
         String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/specials/allofplacefor/" + getArguments().getString(PLACE_ID) + "/" + getArguments().getString(DATETIME);
         downloadTask.execute(strUrl);
-        Log.d("Params: ", getArguments().getString(PLACE_ID) + " " + getArguments().getString(DATETIME));
-
-        /*/ TODO: Change Adapter to display your content
-        setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, DummyContent.ITEMS));
-        */
     }
 
     @Override

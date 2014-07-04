@@ -29,6 +29,7 @@ public class MainActivity extends Activity
     private static String NO_CONNECTION = "noconnection";
     private static String HOT_PLACES = "hotplaces";
     private static String WHAT_IS_HERE = "whatishere";
+    private static String EVENTS = "EVENTS";
     private static String FOR_TODAY = "fortoday";
 
     /**
@@ -102,6 +103,27 @@ public class MainActivity extends Activity
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.container, SpecialsFragment.newInstance(place_id, place_name, datetime), WHAT_IS_HERE);
         if( !currentFragmentTag.equals(NO_CONNECTION) && !currentFragmentTag.equals(WHAT_IS_HERE))
+            fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
+        previousFragmentTag = null;
+    }
+
+    public void loadEventsFragment(String place_id, String place_name) {
+        Calendar rightNow = Calendar.getInstance();
+        String datetime = String.valueOf(rightNow.get(rightNow.YEAR)) + "-" + String.valueOf(rightNow.get(rightNow.MONTH) + 1) + "-" + String.valueOf(rightNow.get(rightNow.DAY_OF_MONTH)) + " " + String.valueOf(rightNow.get(rightNow.HOUR_OF_DAY)) + ":" + String.valueOf(rightNow.get(rightNow.MINUTE)) + ":" + String.valueOf(rightNow.get(rightNow.SECOND));
+
+        if( place_id == null && place_name == null ) {
+            place_id = getFragmentManager().findFragmentByTag(currentFragmentTag).getArguments().getString("place_id");
+            place_name = getFragmentManager().findFragmentByTag(currentFragmentTag).getArguments().getString("place_name");
+            FragmentManager fragmentManager = getFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.remove( getFragmentManager().findFragmentByTag(currentFragmentTag) );
+            fragmentTransaction.commit();
+        }
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.container, WhatWasHereFragment.newInstance(place_id, place_name, datetime), EVENTS);
+        if( !currentFragmentTag.equals(NO_CONNECTION) && !currentFragmentTag.equals(EVENTS))
             fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
         previousFragmentTag = null;
