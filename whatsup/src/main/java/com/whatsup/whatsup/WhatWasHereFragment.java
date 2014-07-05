@@ -237,7 +237,8 @@ public class WhatWasHereFragment extends ListFragment {
 
             WhatWasHereListView wwhlv = new WhatWasHereListView(getActivity(), 10, headers, null);
             setListAdapter(wwhlv);
-            /*for(int i=0; i<adapter.getCount(); i++) {
+
+           /** for(int i=0; i<adapter.getCount(); i++) {
                 View listAdapterItemView = adapter.getView(i, null, null);
                 ViewGroup vg = (ViewGroup) listAdapterItemView.findViewById(R.id.containerRelativeLayout);
                 NonScrollableGridView nsgv = new NonScrollableGridView(getActivity(), null);
@@ -363,7 +364,7 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
 
     }
 
-    private class ImageAdapter extends BaseAdapter {
+    private class ImageAdapter extends BaseA<dapter {
         private Context mContext;
 
         // references to our images
@@ -460,6 +461,7 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
             ViewGroup vg = (ViewGroup) convertView.findViewById(R.id.containerRelativeLayout);
             gv.setAdapter(new ImageAdapter(mContext, 10));
             vg.addView(gv, rlp);
+
 
             return convertView;
         }

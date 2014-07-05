@@ -337,7 +337,7 @@ public class WhatItIsHotFragment extends ListFragment {
         @Override
         protected void onPostExecute(SimpleAdapter adapter) {
             setListAdapter(adapter);
-            /*imageLoaderTask = new ImageLoaderTask[adapter.getCount()];
+            imageLoaderTask = new ImageLoaderTask[adapter.getCount()];
             for(int i=0; i<adapter.getCount(); i++) {
                 HashMap<String,Object> hm = (HashMap<String, Object>) adapter.getItem(i);
                 HashMap<String, Object> hmDownload = new HashMap<String, Object>();
@@ -347,7 +347,7 @@ public class WhatItIsHotFragment extends ListFragment {
                 hmDownload.put("gp_icon_path", imgURL);
                 hmDownload.put("position", i);
                 imageLoaderTask[i].execute(hmDownload);
-            }*/
+            }
         }
 
     }
@@ -395,7 +395,7 @@ public class WhatItIsHotFragment extends ListFragment {
                 hm.put("gp_icon", path);
                 adapter.notifyDataSetChanged();
             }else {
-                Toast.makeText( getActivity(), R.string.lost_connection, Toast.LENGTH_SHORT).show();
+                Toast.makeText( getActivity(), R.string.lost_connection, Toast.LENGTH_SHORT ).show();
             }
         }
 
