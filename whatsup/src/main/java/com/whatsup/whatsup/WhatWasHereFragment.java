@@ -16,6 +16,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -113,7 +115,8 @@ public class WhatWasHereFragment extends ListFragment {
         super.onActivityCreated(savedInstanceState);
         Log.d("onActivityCreated", "entré");
         downloadTask = new DownloadTask();
-        String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/" + getArguments().getString(PLACE_ID) + "/" + getArguments().getString(DATETIME);
+        //String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/" + getArguments().getString(PLACE_ID) + "/" + getArguments().getString(DATETIME);
+        String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/11051/" + getArguments().getString(DATETIME);
         downloadTask.execute(strUrl);
     }
 
@@ -227,35 +230,17 @@ public class WhatWasHereFragment extends ListFragment {
         protected void onPostExecute(SimpleAdapter adapter) {
             Log.d("onPostExecute", "Pediré una vista ");
             getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-            ArrayList<String> headers = new ArrayList<String>();
-            headers.add("lunes");headers.add("lunes");
-            headers.add("martes");headers.add("martes");
-            headers.add("miercoles");headers.add("miercoles");
-            headers.add("jueves");headers.add("jueves");
-            headers.add("viernes");headers.add("viernes");
-            headers.add("sabado");headers.add("sabado");
+            ArrayList<WwhLvItem> mAlWwhLvItem = new ArrayList<WwhLvItem>();
 
-            WhatWasHereListView wwhlv = new WhatWasHereListView(getActivity(), 10, headers, null);
-            setListAdapter(wwhlv);
+            for(int i=0; i<10; i++) {
+                Log.d( "i: ", String.valueOf(i) );
+                WwhLvItem item = new WwhLvItem();
+                item.setEvent_title( "Event # " + String.valueOf(i) );
+                mAlWwhLvItem.add( item );
+            }
+            WhatWasHereListViewAdapter adapter_new = new WhatWasHereListViewAdapter( getActivity(), R.layout.fragment_what_was_here_lv_item, mAlWwhLvItem );
+            setListAdapter(adapter_new);
 
-           /** for(int i=0; i<adapter.getCount(); i++) {
-                View listAdapterItemView = adapter.getView(i, null, null);
-                ViewGroup vg = (ViewGroup) listAdapterItemView.findViewById(R.id.containerRelativeLayout);
-                NonScrollableGridView nsgv = new NonScrollableGridView(getActivity(), null);
-                nsgv.setColumnWidth(100);
-                nsgv.setNumColumns(3);
-                nsgv.setVerticalSpacing(20);
-                nsgv.setHorizontalSpacing(20);
-                nsgv.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
-                nsgv.setGravity(Gravity.CENTER);
-                RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
-                rlp.addRule(RelativeLayout.BELOW, R.id.event_title);
-                nsgv.setAdapter(new ImageAdapter(getActivity(), 10 ));
-                vg.addView(nsgv,rlp);
-                setListAdapter(adapter);
-                adapter.notifyDataSetChanged();
-
-            }*/
             if( adapter.getCount() == 0 ) {
                 getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
             }else {
@@ -364,23 +349,26 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
 
     }
 
-    private class ImageAdapter extends BaseA<dapter {
+    private class ImageAdapter extends ArrayAdapter<WwhGvItem> {
         private Context mContext;
+        int mResourceId;
+        private ArrayList<WwhGvItem> mThumbUris;
 
-        // references to our images
-        private ArrayList<String> mThumbUris;
-
-        public ImageAdapter(Context c, int numOfImages) { //, ArrayList<String> imagesLocalUris) {
-            mContext = c;
-            //mThumbUris = imagesLocalUris;
+        public ImageAdapter(Context mContext, int mResourceId, ArrayList<WwhGvItem> mThumbsUris) {
+            super(mContext, mResourceId, mThumbsUris);
+            this.mContext = mContext;
+            this.mResourceId = mResourceId;
+            this.mThumbUris = mThumbsUris;
         }
 
         public int getCount() {
-            return 10;//mThumbUris.size();
+            Log.d("on getCount", String.valueOf( mThumbUris.size() ) );
+            return mThumbUris.size();
         }
 
-        public Object getItem(int position) {
-            return null;
+        public WwhGvItem getItem(int position) {
+            Log.d("on getItem ", "Entered");
+            return mThumbUris.get(position);
         }
 
         public long getItemId(int position) {
@@ -390,6 +378,54 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
         // create a new ImageView for each item referenced by the Adapter
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+            Log.d("on getView ", "Entered");
+            GvViewHolder vh;
+
+            if (convertView == null) {  // if it's not recycled, initialize some attributes
+                convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(mResourceId, parent, false);
+                vh = new GvViewHolder();
+                vh.imageItem = (ImageView ) convertView.findViewById(R.id.imgItem);
+                convertView.setTag(vh);
+            } else {
+                vh = (GvViewHolder) convertView.getTag();
+            }
+            WwhGvItem item = getItem(position);
+            Log.d("Number of items on item: ", item.getImage().toString());
+            vh.imageItem.setImageDrawable( item.getImage());
+            return convertView;
+        }
+
+        public void setmThumbUri( int position, WwhGvItem item ) {
+            this.mThumbUris.set( position, item );
+            notifyDataSetChanged();
+        }
+
+    }
+
+    public class ImageAdapter1 extends BaseAdapter {
+        private Context mContext;
+
+        public ImageAdapter1(Context c) {
+            mContext = c;
+        }
+
+        public int getCount() {
+            Log.d("on getCount", "entered");
+            return 500; //mThumbIds.length;
+        }
+
+        public Object getItem(int position) {
+            Log.d("on getItem", "entered");
+            return null;
+        }
+
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        // create a new ImageView for each item referenced by the Adapter
+        public View getView(int position, View convertView, ViewGroup parent) {
+            Log.d("on getView", "entered");
             ImageView imageView;
             if (convertView == null) {  // if it's not recycled, initialize some attributes
                 imageView = new ImageView(mContext);
@@ -400,37 +436,40 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
                 imageView = (ImageView) convertView;
             }
 
-            //imageView.setImageURI(Uri.fromFile(new File(mThumbUris.get(position))));
-            imageView.setImageResource(R.drawable.hundred);
+            imageView.setImageResource(mThumbIds[0]);
             return imageView;
         }
 
-
-
+        // references to our images
+        private Integer[] mThumbIds = {
+                R.drawable.empty_frame
+        };
     }
 
-    private class WhatWasHereListView extends BaseAdapter {
+    static class GvViewHolder {
+        ImageView imageItem;
+    }
+
+    private class WhatWasHereListViewAdapter extends ArrayAdapter<WwhLvItem> {
         private Context mContext;
-
+        int mResourceId;
         // references to our images
-        private ArrayList<String> mThumbUris;
-        private ArrayList<String> headers;
-        private List<List<HashMap<String,Object>>> pictures;
-        private LayoutInflater mInflater = null;
+        private ArrayList<WwhLvItem> mAlWwLvItem;
 
-        public WhatWasHereListView(Context c, int numOfImages, ArrayList<String> headers, List<List<HashMap<String,Object>>> pictures ) { //, ArrayList<String> imagesLocalUris) {
+        public WhatWasHereListViewAdapter( Context c, int ResourceId,  ArrayList<WwhLvItem> mAlWwLvItem ) {
+            super(c, ResourceId, mAlWwLvItem);
             this.mContext = c;
-            this.mInflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            this.headers = headers;
-            this.pictures = pictures;
-            //mThumbUris = imagesLocalUris;
+            this.mResourceId = ResourceId;
+            this.mAlWwLvItem = mAlWwLvItem;
         }
 
         public int getCount() {
-            return 5;//mThumbUris.size();
+            Log.d("on getCount", "in here");
+            return mAlWwLvItem.size();
         }
 
-        public Object getItem(int position) {
+        public WwhLvItem getItem( int position ) {
+            Log.d("on getItem", "in here");
             return null;
         }
 
@@ -441,12 +480,19 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
         // create a new ImageView for each item referenced by the Adapter
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+            LvViewHolder vh;
             if( convertView == null) {
-                convertView = mInflater.inflate(R.layout.fragment_what_was_here_lv_item, parent, false);
-            }
+                convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(mResourceId, parent, false);
+                vh = new LvViewHolder();
+                vh.tv = ( TextView ) convertView.findViewById(R.id.event_title);
+                vh.nsgv = ( NonScrollableGridView ) convertView.findViewById (R.id.gridview);
 
-            TextView tv = (TextView) convertView.findViewById(R.id.event_title);
-            tv.setText(headers.get(position));
+                convertView.setTag(vh);
+            }else {
+                vh = ( LvViewHolder ) convertView.getTag();
+            }
+            vh.tv.setText( mAlWwLvItem.get( position ).getEvent_title() );
+
             RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
             rlp.addRule(RelativeLayout.BELOW, R.id.event_title);
             NonScrollableGridView gv = new NonScrollableGridView(getActivity(),null);
@@ -458,16 +504,18 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
             gv.setGravity(Gravity.CENTER);
             gv.setFastScrollEnabled(true);
             gv.setScrollingCacheEnabled(true);
-            ViewGroup vg = (ViewGroup) convertView.findViewById(R.id.containerRelativeLayout);
-            gv.setAdapter(new ImageAdapter(mContext, 10));
-            vg.addView(gv, rlp);
+            gv.setAdapter( new ImageAdapter1( getActivity() ) );
 
+            ViewGroup vg = (ViewGroup) convertView.findViewById(R.id.containerRelativeLayout);
+            vg.addView( gv , rlp );
 
             return convertView;
         }
+    }
 
-
-
+    static class LvViewHolder {
+        TextView tv;
+        NonScrollableGridView nsgv;
     }
 
 }

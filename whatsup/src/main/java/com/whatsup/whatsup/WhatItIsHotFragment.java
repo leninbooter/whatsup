@@ -20,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -401,5 +402,14 @@ public class WhatItIsHotFragment extends ListFragment {
 
     }
 
+    static class WhatIsHotItemHolder {
+        ImageView imv_icon;
+        TextView tv_place_title;
+        TextView tv_address;
+        Button b_hgt;
+        Button b_wwh;
+        Button b_wih;
+        ImageView im_fullness;
+    }
 
 }
