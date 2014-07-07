@@ -3,22 +3,34 @@
 
     <string name="action_example">Example action</string>
     <string name="action_settings">Settings</string>
+    <string name="august">august</string>
     <string name="app_name">WhatsUp</string>
+    <string name="april">april</string>
     <string name="cannot_connect">Connection error to server.\nPlease, make sure you have Internet access through wi-fi or mobile data and try again.</string>
+    <string name="december">december</string>
+    <string name="february">february</string>
     <string name="friday">Friday</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="how_get_there">How to get here?</string>
+    <string name="january">January</string>
+    <string name="june">june</string>
+    <string name="july">july</string>
     <string name="logo">Logotype</string>
     <string name="lost_connection">Lost connection.\nPlease, try again.</string>
     <string name="luxury_places">Luxury Places</string>
+    <string name="march">March</string>
+    <string name="may">may</string>
     <string name="monday">Monday</string>
     <string name="more">More...</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="no_info">We are sorry! No information is available right now for this place; but, ¡go there! and take a look by yourself.</string>
     <string name="no_maps">Google Maps has to be installed to use this functionality.</string>
+    <string name="november">novemeber</string>
+    <string name="october">october</string>
     <string name="refresh">Refresh</string>
     <string name="saturday">Saturday</string>
+    <string name="septembter">september</string>
     <string name="standard_places">Standard Places</string>
     <string name="specials">Specials</string>
     <string name="sunday">Sunday</string>
@@ -34,5 +46,4 @@
     <string name="tuesday">Tuesday</string>
     <string name="hello_world">Hello world!</string>
     <string name="wednsday">Wednsday</string>
-
 </resources>

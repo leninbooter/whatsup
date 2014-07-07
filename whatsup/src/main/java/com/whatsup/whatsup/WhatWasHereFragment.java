@@ -29,6 +29,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -155,6 +156,7 @@ public class WhatWasHereFragment extends ListFragment {
 
             try {
                 event.put("title", jEvent.getString("title"));
+                event.put("datetime_from", jEvent.getString("datetime_from"));
                 Log.d("title: ",jEvent.getString("title"));
             }catch (JSONException e ) {
                 e.printStackTrace();
@@ -207,10 +209,10 @@ public class WhatWasHereFragment extends ListFragment {
 
 
 
-    private class ListViewLoaderTask extends  AsyncTask<String, Void, SimpleAdapter> {
+    private class ListViewLoaderTask extends  AsyncTask<String, Void, List<HashMap<String, Object>> > {
 
         @Override
-        protected SimpleAdapter doInBackground(String... strJson) {
+        protected List<HashMap<String, Object>>  doInBackground(String... strJson) {
             EventsJSONparser eventsJSONparser = new EventsJSONparser();
             List<HashMap<String, Object>> events = null;
 
@@ -220,67 +222,109 @@ public class WhatWasHereFragment extends ListFragment {
             }catch ( Exception e ) {
                 Log.d("Exception", e.toString());
             }
-            String[] from = { "title"};
-            int[] to = { R.id.event_title};
-            SimpleAdapter adapter = new SimpleAdapter(getActivity(), events, R.layout.fragment_what_was_here_lv_item, from, to);
-            return adapter;
+            //String[] from = { "title"};
+            //int[] to = { R.id.event_title};
+            //SimpleAdapter adapter = new SimpleAdapter(getActivity(), events, R.layout.fragment_what_was_here_lv_item, from, to);
+            return events;
         }
 
         @Override
-        protected void onPostExecute(SimpleAdapter adapter) {
-            Log.d("onPostExecute", "Pediré una vista ");
-            getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-            ArrayList<WwhLvItem> mAlWwhLvItem = new ArrayList<WwhLvItem>();
+        protected void onPostExecute(List<HashMap<String, Object>>  adapter) {
+            ArrayList<HashMap<String, String>> items = new ArrayList<HashMap<String, String>>();
+            HashMap<String, String> hm = new HashMap<String, String>();
+            String year, month, year_c, month_c;
+            Boolean first = true;
 
-            for(int i=0; i<10; i++) {
-                Log.d( "i: ", String.valueOf(i) );
-                WwhLvItem item = new WwhLvItem();
-                item.setEvent_title( "Event # " + String.valueOf(i) );
-                mAlWwhLvItem.add( item );
+            year = adapter.get(0).get("datetime_from").toString().substring(0,4);
+            month = adapter.get(0).get("datetime_from").toString().substring(5,7);
+            year_c = adapter.get(0).get("datetime_from").toString().substring(0,4);
+            month_c = adapter.get(0).get("datetime_from").toString().substring(5,7);
+
+            hm.put("title", year + " - " + getMonthName(month) );
+            hm.put("datetime_from", "" );
+            items.add( hm );
+            for(int i=0; i < adapter.size() ; i++) {
+                Log.d( "i: ", adapter.get(i).get("title").toString() );
+                Log.d( "i: ", adapter.get(i).get("datetime_from").toString() );
+                year = adapter.get(i).get("datetime_from").toString().substring(0,4);
+                month = adapter.get(i).get("datetime_from").toString().substring(5,7);
+
+                if( year.equals(year_c) && month.equals(month_c) ) {
+                    hm = new HashMap<String, String>();
+                    hm.put("title", adapter.get(i).get("title").toString() );
+                    hm.put("datetime_from", adapter.get(i).get("datetime_from").toString() );
+                    items.add( hm );
+                }else {
+                    hm = new HashMap<String, String>();
+                    hm.put("title", year + " - " + getMonthName(month) );
+                    hm.put("datetime_from", "" );
+                    items.add( hm );
+                    hm = new HashMap<String, String>();
+                    hm.put("title", adapter.get(i).get("title").toString() );
+                    hm.put("datetime_from", adapter.get(i).get("datetime_from").toString() );
+                    items.add( hm );
+                }
+
+                year_c = year;
+                month_c = month;
             }
-            WhatWasHereListViewAdapter adapter_new = new WhatWasHereListViewAdapter( getActivity(), R.layout.fragment_what_was_here_lv_item, mAlWwhLvItem );
+            WhatWasHereListViewAdapter adapter_new = new WhatWasHereListViewAdapter( getActivity(), items );
+            getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
             setListAdapter(adapter_new);
 
-            if( adapter.getCount() == 0 ) {
+            if( adapter.size() == 0 ) {
                 getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
-            }else {
-                /*imageLoaderTask = new ImageLoaderTask[adapter.getCount()];
-                for(int i=0; i<adapter.getCount(); i++) {
-                    picturesLocaleUris = new ArrayList<String>();
-                    EventsJSONparser pictsjsonparser = new EventsJSONparser();
-                    Log.d("i", String.valueOf(i));
-                    List<HashMap<String, Object>> pictsParsed = pictsjsonparser.parseImages(jObject, i);
-                    Log.d("Images parsiadas: ", String.valueOf(pictsParsed.size()));
-                    pictures.add(pictsParsed);
-                    List<String> picl = new ArrayList<String>();
-                    for(int j=0; j<pictures.get(i).size(); j++) {
-                        picl.add(pictures.get(i).get(j).get("source").toString());
-                        Log.d("pictures.get(i).get(j).get(\"source\").toString()", pictures.get(i).get(j).get("source").toString());
-                    }
-                    imageLoaderTask[i] = new ImageLoaderTask();
-                    try {
-                        Time now = new Time();
-                        now.setToNow();
-                        Log.d("hora entrada: ", now.toString());
-                        Log.d("inicio hilo con # de imagenes ", String.valueOf(picl.size()));
-                        imageLoaderTask[i].execute(picl).get();
-                        now.setToNow();
-                        Log.d("hora salida: ", now.toString() );
-                        SimpleAdapter listAdapter = (SimpleAdapter) getListAdapter();
-                        View listAdapterItemView = listAdapter.getView(i, null, null);
-                        GridView gv = (GridView) listAdapterItemView.findViewById(R.id.gridview);
-                        Log.d("picturesLocaleUris.size()", String.valueOf(picturesLocaleUris.size()));
-                        ImageAdapter gv_adapter = new ImageAdapter(getActivity(), picturesLocaleUris.size(), picturesLocaleUris);
-                        gv.setAdapter(gv_adapter);
-                        gv_adapter.notifyDataSetChanged();
-
-                    }catch (java.lang.InterruptedException e) {
-                        Log.d("java.lang.InterruptedException", e.getMessage());
-                    }catch (java.util.concurrent.ExecutionException e) {
-                        Log.d("java.util.concurrent.ExecutionException", e.getMessage());
-                    }
-                }*/
             }
+        }
+
+        private String getMonthName(String number) {
+            if( number.equals("01") )
+                return getString(R.string.january);
+            else {
+                if( number.equals("02") )
+                    return getString(R.string.february);
+                else {
+                    if( number.equals("03" ) )
+                        return getString(R.string.march);
+                    else {
+                        if( number.equals("04" ) )
+                            return getString(R.string.april);
+                        else {
+                            if( number.equals("05" ) )
+                                return getString(R.string.may);
+                            else {
+                                if( number.equals("06" ) )
+                                    return getString(R.string.june);
+                                else {
+                                    if( number.equals("07" ) )
+                                        return getString(R.string.july);
+                                    else {
+                                        if( number.equals("08" ) )
+                                            return getString(R.string.august);
+                                        else {
+                                            if( number.equals("09" ) )
+                                                return getString(R.string.septembter);
+                                            else {
+                                                if( number.equals("10" ) )
+                                                    return getString(R.string.october);
+                                                else {
+                                                    if( number.equals("11" ) )
+                                                        return getString(R.string.november);
+                                                    else {
+                                                        if( number.equals("12" ) )
+                                                            return getString(R.string.december);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
         }
     }
 
@@ -450,72 +494,87 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
         ImageView imageItem;
     }
 
-    private class WhatWasHereListViewAdapter extends ArrayAdapter<WwhLvItem> {
+    private class WhatWasHereListViewAdapter extends BaseAdapter {
         private Context mContext;
-        int mResourceId;
-        // references to our images
-        private ArrayList<WwhLvItem> mAlWwLvItem;
+        private ArrayList<Integer> mTypes = new ArrayList<Integer>();
+        private ArrayList<HashMap<String, String>> mItems;
 
-        public WhatWasHereListViewAdapter( Context c, int ResourceId,  ArrayList<WwhLvItem> mAlWwLvItem ) {
-            super(c, ResourceId, mAlWwLvItem);
+
+        public WhatWasHereListViewAdapter( Context c, ArrayList<HashMap<String, String>> mItems) {
             this.mContext = c;
-            this.mResourceId = ResourceId;
-            this.mAlWwLvItem = mAlWwLvItem;
+            this.mItems = mItems;
+            for( int i = 0; i < mItems.size(); i++ ) {
+                Log.d("on WhatWasHereListViewAdapter", mItems.get(i).get("title").toString());
+                Log.d("on WhatWasHereListViewAdapter", mItems.get(i).get("datetime_from").toString());
+                if( mItems.get(i).get("datetime_from").toString().equals("") )
+                    this.mTypes.add(0); //disabled row for dates
+                else this.mTypes.add(1); //enabled row for event description
+            }
         }
 
+        @Override
         public int getCount() {
             Log.d("on getCount", "in here");
-            return mAlWwLvItem.size();
+            return mItems.size();
         }
 
+        @Override
         public WwhLvItem getItem( int position ) {
             Log.d("on getItem", "in here");
             return null;
         }
 
+        @Override
         public long getItemId(int position) {
-            return 0;
+            return mTypes.get(position);
+        }
+
+        @Override
+        public boolean isEnabled(int position) {
+            if( getItemViewType(position) == 0)
+                return false;
+            else
+                return true;
+        }
+
+        @Override
+        public int getItemViewType(int position ) {
+            return mTypes.get( position );
         }
 
         // create a new ImageView for each item referenced by the Adapter
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            LvViewHolder vh;
+            ItemViewHolder vh;
             if( convertView == null) {
-                convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(mResourceId, parent, false);
-                vh = new LvViewHolder();
-                vh.tv = ( TextView ) convertView.findViewById(R.id.event_title);
-                vh.nsgv = ( NonScrollableGridView ) convertView.findViewById (R.id.gridview);
-
+                vh = new ItemViewHolder();
+                if( getItemViewType(position) == 0 ) {
+                    convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.fragment_what_was_here_lv_item_disabled, parent, false);
+                    vh.title = ( TextView ) convertView.findViewById(R.id.year_month);
+                }
+                if( getItemViewType(position) == 1 ) {
+                    convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.fragment_what_was_here_lv_item, parent, false);
+                    vh.title = (TextView) convertView.findViewById(R.id.event_title);
+                    vh.subtitle = (TextView) convertView.findViewById(R.id.date);
+                }
                 convertView.setTag(vh);
             }else {
-                vh = ( LvViewHolder ) convertView.getTag();
+                vh = ( ItemViewHolder ) convertView.getTag();
             }
-            vh.tv.setText( mAlWwLvItem.get( position ).getEvent_title() );
 
-            RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
-            rlp.addRule(RelativeLayout.BELOW, R.id.event_title);
-            NonScrollableGridView gv = new NonScrollableGridView(getActivity(),null);
-            gv.setColumnWidth(100);
-            gv.setNumColumns(3);
-            gv.setVerticalSpacing(20);
-            gv.setHorizontalSpacing(20);
-            gv.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
-            gv.setGravity(Gravity.CENTER);
-            gv.setFastScrollEnabled(true);
-            gv.setScrollingCacheEnabled(true);
-            gv.setAdapter( new ImageAdapter1( getActivity() ) );
-
-            ViewGroup vg = (ViewGroup) convertView.findViewById(R.id.containerRelativeLayout);
-            vg.addView( gv , rlp );
-
+            vh.title.setText( mItems.get(position).get("title") );
+            if(vh == null) Log.d("vh", "is null");
+            if(vh.subtitle == null) Log.d("vh.subtitle", "is null");
+            if( getItemViewType(position) == 1 ) {
+                vh.subtitle.setText(mItems.get(position).get("datetime_from"));
+            }
             return convertView;
         }
     }
 
-    static class LvViewHolder {
-        TextView tv;
-        NonScrollableGridView nsgv;
+    static class ItemViewHolder {
+        TextView title;
+        TextView subtitle;
     }
 
 }

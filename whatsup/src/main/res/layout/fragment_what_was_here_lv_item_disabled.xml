@@ -5,18 +5,12 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:layout_margin="10dp">
     <TextView
-        style="@style/Tittles"
-        android:id="@+id/event_title"
-        android:textStyle="bold"
+        android:id="@+id/year_month"
+        android:textSize="22sp"
+        android:textStyle="italic|bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Inauguración"/>
-
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/event_title"
-        android:text="Sábado, 26 de junio de 2014"/>
+        android:text="2014 - january"
+        android:layout_centerHorizontal="true"/>
 
 </RelativeLayout>
