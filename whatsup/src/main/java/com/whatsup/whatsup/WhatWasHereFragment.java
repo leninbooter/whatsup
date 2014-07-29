@@ -1,7 +1,7 @@
 package com.whatsup.whatsup;
 
 
-
+import android.app.Activity;
 import android.app.ListFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -21,6 +21,7 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -36,6 +37,10 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -55,22 +60,24 @@ public class WhatWasHereFragment extends ListFragment {
     private static final String PLACE_NAME = "place_name";
     private static final String DATETIME = "datetime";
 
-    private OnFragmentSpecialsFragmentListener mListener;
+    private OnFragmentWwhFragmentListener mListener;
     private View mWhatWasHereListView;
     private Params parameters;
     private DownloadTask downloadTask;
     private ListViewLoaderTask listViewLoaderTask;
-    private ImageLoaderTask[] imageLoaderTask;
     private String data = null;
     private List<List<HashMap<String,Object>>> pictures = new ArrayList<List<HashMap<String, Object>>>();
     private ArrayList<String> picturesLocaleUris = new ArrayList<String>();
     private JSONObject jObject;
-    private GridView[] gridView;
-    private ImageAdapter[] imageAdapter;
+    private HashMap<Integer, HashMap<String, String>> mEvents = new HashMap<Integer, HashMap<String, String>>();
+    private WhatWasHereListViewAdapter whatWasHereListViewAdapter;
+    private Boolean mPaused = false;
 
-    public interface OnFragmentSpecialsFragmentListener {
+    public interface OnFragmentWwhFragmentListener {
         public void ShowNoConnectionMessage();
-        public void setCurrentFragmentTag(String tag);
+        public void setmTitle(String title);
+        public void setCurrentFragmentTag( String tag );
+        public void LoadEventsPicturesFragment( String event_id, String event_name, String event_date );
     }
     /**
      * Use this factory method to create a new instance of
@@ -95,32 +102,102 @@ public class WhatWasHereFragment extends ListFragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("onCreate", "entered");
-        parameters = new Params();
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mListener = (OnFragmentWwhFragmentListener) activity;
+
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d("onCreate", "entered");
+        if( savedInstanceState == null ) {
+            parameters = new Params();
+            downloadTask = new DownloadTask();
+            //String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/" + getArguments().getString(PLACE_ID) + "/" + getArguments().getString(DATETIME);
+            String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/11051/" + getArguments().getString(DATETIME);
+            downloadTask.execute(strUrl);
+        }else {
+            Log.d("Fragment wwh:", "restored onCreate");
+        }
+    }
+
+    @Override
+    public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ) {
         Log.d("onCreateView from what was here", "entered");
-        mWhatWasHereListView = (RelativeLayout) inflater.inflate(R.layout.fragment_what_was_here, container, false);
-        TextView place_name = (TextView)mWhatWasHereListView.findViewById(R.id.place_name);
-        place_name.setText( getString(R.string.what_was_at) + " " + getArguments().getString(PLACE_NAME) + "?");
+        mWhatWasHereListView = (RelativeLayout) inflater.inflate( R.layout.fragment_what_was_here, container, false );
+        TextView place_name = (TextView) mWhatWasHereListView.findViewById(R.id.place_name);
+        place_name.setText(getString(R.string.what_was_at) + " " + getArguments().getString(PLACE_NAME) + "?");
         return mWhatWasHereListView;
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        Log.d("onActivityCreated", "entré");
-        downloadTask = new DownloadTask();
-        //String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/" + getArguments().getString(PLACE_ID) + "/" + getArguments().getString(DATETIME);
-        String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/11051/" + getArguments().getString(DATETIME);
-        downloadTask.execute(strUrl);
+    public void onResume() {
+        super.onResume();
+        mListener.setCurrentFragmentTag("events");
+        mListener.setmTitle( getArguments().getString(PLACE_NAME) );
+        if( mPaused ) {
+            Log.d("Fragment wwh:", "restored onCreateView");
+            getView().findViewById( R.id.progress_bar ).setVisibility(View.GONE);
+            mPaused = false;
+        }
     }
 
+    /*@Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        Log.d("onActivityCreated", "entré");
+        super.onActivityCreated(savedInstanceState);
+        if( savedInstanceState == null ) {
+            downloadTask = new DownloadTask();
+            //String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/" + getArguments().getString(PLACE_ID) + "/" + getArguments().getString(DATETIME);
+            String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/11051/" + getArguments().getString(DATETIME);
+            downloadTask.execute(strUrl);
+        }else {
+            Log.d("Fragment wwh:", "restored onCreateView");
+        }
+    }*/
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("on", "onPause");
+        mPaused = true;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d("on", "onStop");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d("on", "onDestroyView");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("on", "onDestroy");
+
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.d("on", "onDetach");
+        mListener = null;
+
+    }
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        mListener.LoadEventsPicturesFragment(
+                                                    whatWasHereListViewAdapter.getItem( position ).get( "id" ),
+                                                    whatWasHereListViewAdapter.getItem( position ).get( "title" ),
+                                                    whatWasHereListViewAdapter.getItem( position ).get( "datetime_from" )
+                                                );
+
+    }
     private class EventsJSONparser {
 
         public List<HashMap<String,Object>> parse (JSONObject jObject) {
@@ -155,9 +232,9 @@ public class WhatWasHereFragment extends ListFragment {
             HashMap<String, Object> event = new HashMap<String, Object>();
 
             try {
+                event.put("id", jEvent.getString("pk_event_id"));
                 event.put("title", jEvent.getString("title"));
                 event.put("datetime_from", jEvent.getString("datetime_from"));
-                Log.d("title: ",jEvent.getString("title"));
             }catch (JSONException e ) {
                 e.printStackTrace();
             }
@@ -197,9 +274,7 @@ public class WhatWasHereFragment extends ListFragment {
 
             try {
                 pict.put("source", jPict.getString("source"));
-                //pict.put("gp_html_attributions", jPict.getString("gp_html_attributions"));
                 Log.d("source", jPict.getString("source"));
-                //Log.d("gp_html_attributions",jPict.getString("gp_html_attributions"));
             }catch (JSONException e ) {
                 e.printStackTrace();
             }
@@ -215,16 +290,12 @@ public class WhatWasHereFragment extends ListFragment {
         protected List<HashMap<String, Object>>  doInBackground(String... strJson) {
             EventsJSONparser eventsJSONparser = new EventsJSONparser();
             List<HashMap<String, Object>> events = null;
-
             try {
                 jObject = new JSONObject(strJson[0]);
                 events = eventsJSONparser.parse(jObject);
             }catch ( Exception e ) {
                 Log.d("Exception", e.toString());
             }
-            //String[] from = { "title"};
-            //int[] to = { R.id.event_title};
-            //SimpleAdapter adapter = new SimpleAdapter(getActivity(), events, R.layout.fragment_what_was_here_lv_item, from, to);
             return events;
         }
 
@@ -235,31 +306,51 @@ public class WhatWasHereFragment extends ListFragment {
             String year, month, year_c, month_c;
             Boolean first = true;
 
-            year = adapter.get(0).get("datetime_from").toString().substring(0,4);
-            month = adapter.get(0).get("datetime_from").toString().substring(5,7);
-            year_c = adapter.get(0).get("datetime_from").toString().substring(0,4);
-            month_c = adapter.get(0).get("datetime_from").toString().substring(5,7);
+            String datestr = adapter.get(0).get("datetime_from").toString();
+            SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Calendar calendar = Calendar.getInstance();
+            try {
+                calendar.setTime( fmt.parse(datestr) );
+            }catch ( ParseException e) {
 
-            hm.put("title", year + " - " + getMonthName(month) );
+            }
+            //year = String.valueOf( calendar.get( Calendar.YEAR ) );
+            //month = adapter.get(0).get("datetime_from").toString().substring(5, 7);
+            year_c = String.valueOf(calendar.get(Calendar.YEAR));
+            fmt = new SimpleDateFormat("MM");
+            month_c = fmt.format(calendar.getTime());
+            fmt = new SimpleDateFormat("yyyy / MMMM");
+            hm.put("title", String.valueOf(fmt.format(calendar.getTime())) );
             hm.put("datetime_from", "" );
             items.add( hm );
             for(int i=0; i < adapter.size() ; i++) {
-                Log.d( "i: ", adapter.get(i).get("title").toString() );
-                Log.d( "i: ", adapter.get(i).get("datetime_from").toString() );
-                year = adapter.get(i).get("datetime_from").toString().substring(0,4);
-                month = adapter.get(i).get("datetime_from").toString().substring(5,7);
+                datestr = adapter.get( i ).get("datetime_from").toString();
+                fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                calendar = Calendar.getInstance();
+                try {
+                    calendar.setTime( fmt.parse(datestr) );
+                }catch ( ParseException e) {
+
+                }
+                year = String.valueOf(calendar.get(Calendar.YEAR));
+                fmt = new SimpleDateFormat("MM");
+                month = String.valueOf(fmt.format(calendar.getTime()));
 
                 if( year.equals(year_c) && month.equals(month_c) ) {
                     hm = new HashMap<String, String>();
+                    hm.put("id", adapter.get(i).get("id").toString() );
                     hm.put("title", adapter.get(i).get("title").toString() );
                     hm.put("datetime_from", adapter.get(i).get("datetime_from").toString() );
                     items.add( hm );
                 }else {
                     hm = new HashMap<String, String>();
-                    hm.put("title", year + " - " + getMonthName(month) );
+                    hm.put("id", adapter.get(i).get("id").toString() );
+                    fmt = new SimpleDateFormat("yyyy / MMMM");
+                    hm.put("title", String.valueOf(fmt.format(calendar.getTime())) );
                     hm.put("datetime_from", "" );
                     items.add( hm );
                     hm = new HashMap<String, String>();
+                    hm.put("id", adapter.get(i).get("id").toString() );
                     hm.put("title", adapter.get(i).get("title").toString() );
                     hm.put("datetime_from", adapter.get(i).get("datetime_from").toString() );
                     items.add( hm );
@@ -268,63 +359,13 @@ public class WhatWasHereFragment extends ListFragment {
                 year_c = year;
                 month_c = month;
             }
-            WhatWasHereListViewAdapter adapter_new = new WhatWasHereListViewAdapter( getActivity(), items );
-            getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-            setListAdapter(adapter_new);
+            whatWasHereListViewAdapter = new WhatWasHereListViewAdapter( getActivity(), items );
+            getView().findViewById( R.id.progress_bar ).setVisibility(View.GONE);
+            setListAdapter(whatWasHereListViewAdapter);
 
             if( adapter.size() == 0 ) {
                 getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
             }
-        }
-
-        private String getMonthName(String number) {
-            if( number.equals("01") )
-                return getString(R.string.january);
-            else {
-                if( number.equals("02") )
-                    return getString(R.string.february);
-                else {
-                    if( number.equals("03" ) )
-                        return getString(R.string.march);
-                    else {
-                        if( number.equals("04" ) )
-                            return getString(R.string.april);
-                        else {
-                            if( number.equals("05" ) )
-                                return getString(R.string.may);
-                            else {
-                                if( number.equals("06" ) )
-                                    return getString(R.string.june);
-                                else {
-                                    if( number.equals("07" ) )
-                                        return getString(R.string.july);
-                                    else {
-                                        if( number.equals("08" ) )
-                                            return getString(R.string.august);
-                                        else {
-                                            if( number.equals("09" ) )
-                                                return getString(R.string.septembter);
-                                            else {
-                                                if( number.equals("10" ) )
-                                                    return getString(R.string.october);
-                                                else {
-                                                    if( number.equals("11" ) )
-                                                        return getString(R.string.november);
-                                                    else {
-                                                        if( number.equals("12" ) )
-                                                            return getString(R.string.december);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return null;
         }
     }
 
@@ -351,145 +392,6 @@ public class WhatWasHereFragment extends ListFragment {
         }
 }
 
-private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<String>> {
-        @Override
-        protected ArrayList<String> doInBackground(List<String>... urls) {
-            for(int i=0; i<urls[0].size(); i++) {
-                InputStream iStream = null;
-                String imgUrl = Params.CDN + urls[0].get(i);
-                URL url;
-                try {
-                    url = new URL(imgUrl);
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.connect();
-                    iStream = urlConnection.getInputStream();
-                    File cacheDirectory = getActivity().getCacheDir();
-                    File tmpFile = new File(cacheDirectory.getPath() + "/gv_" + String.valueOf(picturesLocaleUris.size()) + "_.png");
-                    FileOutputStream fOutStream = new FileOutputStream(tmpFile);
-                    Bitmap b = BitmapFactory.decodeStream(iStream);
-                    b.compress(Bitmap.CompressFormat.PNG, 100, fOutStream);
-                    fOutStream.flush();
-                    fOutStream.close();
-                    Log.d("tmpFile.getPath()", tmpFile.getPath());
-                    picturesLocaleUris.add(tmpFile.getPath());
-                    if (isCancelled()) return null;
-                } catch (Exception e) {
-                    Log.d("Exception on Imagedownloader task", e.getMessage());
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-            return picturesLocaleUris;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<String> localUrls) {
-            if( localUrls != null ) {
-                //nothing to do yet
-            }else {
-                Toast.makeText(getActivity(), R.string.lost_connection, Toast.LENGTH_SHORT).show();
-            }
-        }
-
-    }
-
-    private class ImageAdapter extends ArrayAdapter<WwhGvItem> {
-        private Context mContext;
-        int mResourceId;
-        private ArrayList<WwhGvItem> mThumbUris;
-
-        public ImageAdapter(Context mContext, int mResourceId, ArrayList<WwhGvItem> mThumbsUris) {
-            super(mContext, mResourceId, mThumbsUris);
-            this.mContext = mContext;
-            this.mResourceId = mResourceId;
-            this.mThumbUris = mThumbsUris;
-        }
-
-        public int getCount() {
-            Log.d("on getCount", String.valueOf( mThumbUris.size() ) );
-            return mThumbUris.size();
-        }
-
-        public WwhGvItem getItem(int position) {
-            Log.d("on getItem ", "Entered");
-            return mThumbUris.get(position);
-        }
-
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        // create a new ImageView for each item referenced by the Adapter
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            Log.d("on getView ", "Entered");
-            GvViewHolder vh;
-
-            if (convertView == null) {  // if it's not recycled, initialize some attributes
-                convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(mResourceId, parent, false);
-                vh = new GvViewHolder();
-                vh.imageItem = (ImageView ) convertView.findViewById(R.id.imgItem);
-                convertView.setTag(vh);
-            } else {
-                vh = (GvViewHolder) convertView.getTag();
-            }
-            WwhGvItem item = getItem(position);
-            Log.d("Number of items on item: ", item.getImage().toString());
-            vh.imageItem.setImageDrawable( item.getImage());
-            return convertView;
-        }
-
-        public void setmThumbUri( int position, WwhGvItem item ) {
-            this.mThumbUris.set( position, item );
-            notifyDataSetChanged();
-        }
-
-    }
-
-    public class ImageAdapter1 extends BaseAdapter {
-        private Context mContext;
-
-        public ImageAdapter1(Context c) {
-            mContext = c;
-        }
-
-        public int getCount() {
-            Log.d("on getCount", "entered");
-            return 500; //mThumbIds.length;
-        }
-
-        public Object getItem(int position) {
-            Log.d("on getItem", "entered");
-            return null;
-        }
-
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        // create a new ImageView for each item referenced by the Adapter
-        public View getView(int position, View convertView, ViewGroup parent) {
-            Log.d("on getView", "entered");
-            ImageView imageView;
-            if (convertView == null) {  // if it's not recycled, initialize some attributes
-                imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
-                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                imageView.setPadding(8, 8, 8, 8);
-            } else {
-                imageView = (ImageView) convertView;
-            }
-
-            imageView.setImageResource(mThumbIds[0]);
-            return imageView;
-        }
-
-        // references to our images
-        private Integer[] mThumbIds = {
-                R.drawable.empty_frame
-        };
-    }
-
     static class GvViewHolder {
         ImageView imageItem;
     }
@@ -498,17 +400,28 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
         private Context mContext;
         private ArrayList<Integer> mTypes = new ArrayList<Integer>();
         private ArrayList<HashMap<String, String>> mItems;
-
+        private LayoutInflater mInflater;
 
         public WhatWasHereListViewAdapter( Context c, ArrayList<HashMap<String, String>> mItems) {
             this.mContext = c;
             this.mItems = mItems;
+            this.mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             for( int i = 0; i < mItems.size(); i++ ) {
-                Log.d("on WhatWasHereListViewAdapter", mItems.get(i).get("title").toString());
-                Log.d("on WhatWasHereListViewAdapter", mItems.get(i).get("datetime_from").toString());
-                if( mItems.get(i).get("datetime_from").toString().equals("") )
-                    this.mTypes.add(0); //disabled row for dates
-                else this.mTypes.add(1); //enabled row for event description
+                if( mItems.get(i).get("datetime_from").toString().equals("") ) {
+                    mItems.get(i).put("type", "0"); //disabled row for dates
+                }
+                else{
+                    mItems.get(i).put("type", "1"); //enabled row for event description
+                    String datestr = mItems.get(i).get("datetime_from");
+                    SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    try {
+                        Date inputDate = fmt.parse(datestr);
+                        mItems.get(i).put("datetime_from", DateFormat.getDateInstance().format(inputDate));
+                    }catch ( ParseException e) {
+                        Log.d("Exception parsing date", e.getMessage() );
+                        e.printStackTrace();
+                    }
+                }
             }
         }
 
@@ -519,14 +432,14 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
         }
 
         @Override
-        public WwhLvItem getItem( int position ) {
+        public HashMap<String, String> getItem( int position ) {
             Log.d("on getItem", "in here");
-            return null;
+            return mItems.get( position );
         }
 
         @Override
         public long getItemId(int position) {
-            return mTypes.get(position);
+            return 0;
         }
 
         @Override
@@ -539,34 +452,47 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
 
         @Override
         public int getItemViewType(int position ) {
-            return mTypes.get( position );
+            return Integer.valueOf( mItems.get( position ).get( "type" ) );
         }
 
-        // create a new ImageView for each item referenced by the Adapter
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public int getViewTypeCount() {
+            Log.d("getViewTypeCount:", "entered");
+            return 2;
+        }
+        // create a new view for each item referenced by the Adapter
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
             ItemViewHolder vh;
+            int type = getItemViewType( position );
+
             if( convertView == null) {
                 vh = new ItemViewHolder();
-                if( getItemViewType(position) == 0 ) {
-                    convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.fragment_what_was_here_lv_item_disabled, parent, false);
-                    vh.title = ( TextView ) convertView.findViewById(R.id.year_month);
+                switch ( type ) {
+                    case 0:
+                        convertView = mInflater.inflate(R.layout.fragment_what_was_here_lv_item_disabled, parent, false);
+                        vh.title = ( TextView ) convertView.findViewById(R.id.year_month);
+                        break;
+                    case 1:
+                        convertView = mInflater.inflate(R.layout.fragment_what_was_here_lv_item, parent, false);
+                        vh.title = (TextView) convertView.findViewById(R.id.event_title);
+                        vh.subtitle = (TextView) convertView.findViewById(R.id.date);
+                        break;
                 }
-                if( getItemViewType(position) == 1 ) {
-                    convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.fragment_what_was_here_lv_item, parent, false);
-                    vh.title = (TextView) convertView.findViewById(R.id.event_title);
-                    vh.subtitle = (TextView) convertView.findViewById(R.id.date);
-                }
-                convertView.setTag(vh);
-            }else {
-                vh = ( ItemViewHolder ) convertView.getTag();
+                convertView.setTag( vh );
+            }
+            else {
+                vh = (ItemViewHolder) convertView.getTag();
             }
 
-            vh.title.setText( mItems.get(position).get("title") );
-            if(vh == null) Log.d("vh", "is null");
-            if(vh.subtitle == null) Log.d("vh.subtitle", "is null");
-            if( getItemViewType(position) == 1 ) {
-                vh.subtitle.setText(mItems.get(position).get("datetime_from"));
+            switch ( type ) {
+                case 0:
+                    vh.title.setText( mItems.get(position).get("title") );
+                    break;
+                case 1:
+                    vh.title.setText( mItems.get(position).get("title") );
+                    vh.subtitle.setText( mItems.get(position).get("datetime_from") );
+                    break;
             }
             return convertView;
         }
@@ -576,6 +502,7 @@ private class ImageLoaderTask extends AsyncTask<List<String>, Void, ArrayList<St
         TextView title;
         TextView subtitle;
     }
+
 
 }
 

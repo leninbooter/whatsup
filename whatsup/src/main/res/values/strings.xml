@@ -12,7 +12,7 @@
     <string name="friday">Friday</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="how_get_there">How to get here?</string>
-    <string name="january">January</string>
+    <string name="january">january</string>
     <string name="june">june</string>
     <string name="july">july</string>
     <string name="logo">Logotype</string>
@@ -26,8 +26,10 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="no_info">We are sorry! No information is available right now for this place; but, ¡go there! and take a look by yourself.</string>
     <string name="no_maps">Google Maps has to be installed to use this functionality.</string>
+    <string name="no_memory">No enough memory to process an image. Please, free resource from the device and try again.</string>
     <string name="november">novemeber</string>
     <string name="october">october</string>
+    <string name="of">of</string>
     <string name="refresh">Refresh</string>
     <string name="saturday">Saturday</string>
     <string name="septembter">september</string>
