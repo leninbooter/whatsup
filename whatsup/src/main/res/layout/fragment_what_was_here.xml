@@ -1,45 +1,36 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/RL_wwhf_rootview"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:clickable="false">
+    android:layout_height="match_parent">
     <TextView
         style="@style/Header"
         android:id="@+id/place_name"
         android:layout_margin="0dp"
+        android:padding="15dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="prueba"
+        android:background="@color/dark_gray"
+        android:textColor="#ffffff"
         />
 
     <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/place_name"
-        android:divider="@null" />
+        android:layout_below="@id/place_name">
+    </ListView>
 
-    <!--<RelativeLayout
+    <RelativeLayout
         android:id="@+id/loadingPanel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center" >
 
         <ProgressBar
-            android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:indeterminate="true" />
-    </RelativeLayout>-->
-
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"/>
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/no_info_not_rellay"
@@ -60,7 +51,6 @@
             android:src="@drawable/noinfo"
             />
         <TextView
-            android:id="@+id/noconnection_imageview_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/noconnection_imageview"

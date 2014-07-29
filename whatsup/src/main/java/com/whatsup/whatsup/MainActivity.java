@@ -17,25 +17,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import org.json.JSONObject;
 
 import java.util.Calendar;
 
 public class MainActivity extends Activity
         implements  NavigationDrawerFragment.NavigationDrawerCallbacks,
                     WhatItIsHotFragment.OnFragmentWhatItIsHotFragmentListener,
-                    SpecialsFragment.OnFragmentSpecialsFragmentListener,
-                    WhatWasHereFragment.OnFragmentWwhFragmentListener,
-                    WhatWasHereFragmentGV.OnWwhGvsFragmentListener {
+                    SpecialsFragment.OnFragmentSpecialsFragmentListener {
 
     private static String NO_CONNECTION = "noconnection";
     private static String HOT_PLACES = "hotplaces";
     private static String WHAT_IS_HERE = "whatishere";
-    private static String EVENTS = "events";
-    private static String EVENTS_PICTURES = "events_pictures";
+    private static String EVENTS = "EVENTS";
     private static String FOR_TODAY = "fortoday";
 
     /**
@@ -135,25 +129,6 @@ public class MainActivity extends Activity
         previousFragmentTag = null;
     }
 
-    public void LoadEventsPicturesFragment( String event_id, String event_name, String event_date ) {
-        if( event_id == null && event_name == null && event_date == null ) {
-            event_id = getFragmentManager().findFragmentByTag( currentFragmentTag ).getArguments().getString( "event_id" );
-            event_name = getFragmentManager().findFragmentByTag( currentFragmentTag ).getArguments().getString( "event_name" );
-            event_date = getFragmentManager().findFragmentByTag( currentFragmentTag ).getArguments().getString( "event_date" );
-            FragmentManager fragmentManager = getFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.remove( getFragmentManager().findFragmentByTag(currentFragmentTag) );
-            fragmentTransaction.commit();
-        }
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.container, WhatWasHereFragmentGV.newInstance( event_id, event_name, event_date ), EVENTS_PICTURES);
-        if( !currentFragmentTag.equals(NO_CONNECTION) && !currentFragmentTag.equals(EVENTS_PICTURES))
-            fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
-        previousFragmentTag = null;
-    }
-
     public void loadWhatItIsUpTodayFragment() {
         if( currentFragmentTag.equals(FOR_TODAY)) {
             FragmentManager fragmentManager = getFragmentManager();
@@ -172,10 +147,20 @@ public class MainActivity extends Activity
     }
 
     private void refreshFragment(String fragmentTag) {
-        if( fragmentTag.equals(HOT_PLACES) ) { loadWhatItIsHotFragment(); return; }
-        if( fragmentTag.equals(WHAT_IS_HERE) ) { loadSpecialsFragment(null, null); return; }
-        if( fragmentTag.equals(FOR_TODAY) ) { loadWhatItIsUpTodayFragment(); return; }
-        if( fragmentTag.equals(EVENTS) ) { loadEventsFragment(null, null); return; }
+            if( fragmentTag.equals(HOT_PLACES) )
+                loadWhatItIsHotFragment();
+            else {
+                if( fragmentTag.equals(WHAT_IS_HERE) )
+                    loadSpecialsFragment(null, null);
+                else {
+                    if( fragmentTag.equals(FOR_TODAY) )
+                        loadWhatItIsUpTodayFragment();
+                    else {
+                        return;
+                    }
+                }
+            }
+        Toast.makeText(getBaseContext(), currentFragmentTag, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -212,6 +197,7 @@ public class MainActivity extends Activity
 
                 break;
         }
+
     }
 
     public void onSectionAttached(int number) {
@@ -288,8 +274,6 @@ public class MainActivity extends Activity
 
     public void setmTitle(String title) {
         mTitle = title;
-        ActionBar actionBar = getActionBar();
-        actionBar.setTitle(mTitle);
     }
 
     /**

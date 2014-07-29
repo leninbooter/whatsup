@@ -3,5 +3,4 @@
         android:id="@+id/lv_hot_places"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MainActivity"
-     />
+        tools:context=".MainActivity" />

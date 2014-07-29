@@ -162,7 +162,6 @@ public class WhatItIsHotFragment extends ListFragment {
     public void onResume() {
         super.onResume();
         mCallBack.setCurrentFragmentTag("hotplaces");
-        mCallBack.setmTitle( getString( R.string.whats_hot ) );
     }
 
     @Override
