@@ -279,12 +279,13 @@ public class WhatWasHereFragmentGV extends Fragment {
                 gridview.setFastScrollEnabled( true );
                 gridview.setFastScrollAlwaysVisible( false );
                 imageLoaderTask = new ImageLoaderTask[ pictures.size() ];
+                service = Executors.newFixedThreadPool(100);
                 for( int i = 0; i < imageLoaderTask.length; i++ ) {
                     Log.d("new thread for image: ", mPictures.get( i ).get( "source" ).toString() );
-                    service = Executors.newCachedThreadPool();
+
                     service.submit( new ImageLoaderTask(mPictures.get(i).get("source").toString(),
-                            mPictures.get(i).get("source").toString().substring(1, mPictures.get(i).get("source").toString().length()),
-                            String.valueOf(i)) );
+                                    mPictures.get(i).get("source").toString().substring(1, mPictures.get(i).get("source").toString().length()),
+                                    String.valueOf(i)) );
                     /*imageLoaderTask[i] = new ImageLoaderTask();
                     imageLoaderTask[i].executeOnExecutor(
                             AsyncTask.THREAD_POOL_EXECUTOR,
@@ -362,8 +363,10 @@ public class WhatWasHereFragmentGV extends Fragment {
             } catch ( OutOfMemoryError ome ) {
                 Toast.makeText( getActivity(), getString( R.string.no_memory ), Toast.LENGTH_SHORT ).show();
             }
-            imgAdapter.setImage( index, mPictures.get( index ).get( "source" ).toString() );
-            imgAdapter.notifyDataSetChanged();
+                synchronized ( imgAdapter ) {
+                    imgAdapter.setImage(index, mPictures.get(index).get("source").toString());
+                    imgAdapter.notifyDataSetChanged();
+                }
         }
     }
     /*
@@ -471,21 +474,22 @@ public class WhatWasHereFragmentGV extends Fragment {
             ViewHolder vh;
             if (convertView == null) {  // if it's not recycled, initialize some attributes
                 vh = new ViewHolder();
-                convertView = ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.fragment_what_was_here_gv_item, parent, false);
                 imageView = new ImageView(mContext);
                 imageView.setLayoutParams(new GridView.LayoutParams( hw, hw ));
+                imageView.setImageResource(R.drawable.empty_frame);
                 //imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 //imageView.setPadding(0, 0, 0, 0);
                 vh.icon = imageView;
-                convertView.setTag( vh );
             } else {
                 //imageView = (ImageView) convertView;
-                vh = (ViewHolder) convertView.getTag();
+                vh = new ViewHolder();
+                vh.icon = (ImageView) convertView;
+                vh.icon.setImageResource(R.drawable.empty_frame);
             }
             if( mImages.get(position) == null ) {
-                vh.icon.setImageResource(R.drawable.empty_frame);
+                //vh.icon.setImageResource(R.drawable.empty_frame);
             }else {
-                vh.icon.setImageResource( R.drawable.empty_frame );
+                //vh.icon.setImageResource( R.drawable.empty_frame );
                 //new GVImageLoader( mImages.get( position ), vh, position );
                 /*Bitmap bitmap = getBitmapFromMemCache(String.valueOf(position));
                 if (bitmap != null) {
@@ -500,7 +504,7 @@ public class WhatWasHereFragmentGV extends Fragment {
                 //imageView.setImageDrawable( Drawable.createFromPath( mImages.get(position) ) );*/
             }
 
-            return convertView;
+            return vh.icon;
         }
 
         public void setImage( int position, String path ) {
