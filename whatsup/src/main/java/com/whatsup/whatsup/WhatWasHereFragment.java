@@ -143,20 +143,6 @@ public class WhatWasHereFragment extends ListFragment {
             mPaused = false;
         }
     }
-
-    /*@Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        Log.d("onActivityCreated", "entré");
-        super.onActivityCreated(savedInstanceState);
-        if( savedInstanceState == null ) {
-            downloadTask = new DownloadTask();
-            //String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/" + getArguments().getString(PLACE_ID) + "/" + getArguments().getString(DATETIME);
-            String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getevents/11051/" + getArguments().getString(DATETIME);
-            downloadTask.execute(strUrl);
-        }else {
-            Log.d("Fragment wwh:", "restored onCreateView");
-        }
-    }*/
     @Override
     public void onPause() {
         super.onPause();
@@ -240,49 +226,7 @@ public class WhatWasHereFragment extends ListFragment {
             }
             return event;
         }
-        //Images processing
-        public List<HashMap<String,Object>> parseImages (JSONObject jObject, int index) {
-            JSONArray jPictures = null;
-
-            try {
-                jPictures = jObject.getJSONArray("events").getJSONObject(index).getJSONArray("pictures");
-            }catch ( JSONException e ) {
-                e.printStackTrace();
-            }
-            return getPictures(jPictures);
-        }
-
-        private List<HashMap<String,Object>> getPictures(JSONArray jPictures) {
-            int count = jPictures.length();
-            List<HashMap<String, Object>> PictureList = new ArrayList<HashMap<String, Object>>();
-            HashMap<String, Object> picture = null;
-
-            for( int i = 0 ; i < count ; i++) {
-                try {
-                    picture = getPict((JSONObject) jPictures.get(i));
-                    PictureList.add(picture);
-                }catch ( JSONException e ) {
-                    Log.d("Exception from getPictures: ", e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-            return PictureList;
-        }
-
-        private HashMap<String, Object> getPict(JSONObject jPict) {
-            HashMap<String, Object> pict = new HashMap<String, Object>();
-
-            try {
-                pict.put("source", jPict.getString("source"));
-                Log.d("source", jPict.getString("source"));
-            }catch (JSONException e ) {
-                e.printStackTrace();
-            }
-            return pict;
-        }
     }
-
-
 
     private class ListViewLoaderTask extends  AsyncTask<String, Void, List<HashMap<String, Object>> > {
 
@@ -314,8 +258,6 @@ public class WhatWasHereFragment extends ListFragment {
             }catch ( ParseException e) {
 
             }
-            //year = String.valueOf( calendar.get( Calendar.YEAR ) );
-            //month = adapter.get(0).get("datetime_from").toString().substring(5, 7);
             year_c = String.valueOf(calendar.get(Calendar.YEAR));
             fmt = new SimpleDateFormat("MM");
             month_c = fmt.format(calendar.getTime());
@@ -391,10 +333,6 @@ public class WhatWasHereFragment extends ListFragment {
             }
         }
 }
-
-    static class GvViewHolder {
-        ImageView imageItem;
-    }
 
     private class WhatWasHereListViewAdapter extends BaseAdapter {
         private Context mContext;
@@ -502,8 +440,4 @@ public class WhatWasHereFragment extends ListFragment {
         TextView title;
         TextView subtitle;
     }
-
-
 }
-
-
