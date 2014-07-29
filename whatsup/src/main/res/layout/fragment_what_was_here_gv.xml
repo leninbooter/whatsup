@@ -1,45 +1,63 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/RL_wwhf_rootview"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clickable="false">
+    android:id="@+id/RL_wwhfgv_rootview">
     <TextView
-        style="@style/Header"
-        android:id="@+id/place_name"
+        android:id="@+id/event_name"
         android:layout_margin="0dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:text="prueba"
+        android:text="Entrega regalos día del niño"
+        android:paddingTop="6dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="0dp"
+        android:background="@color/dark_gray"
+        android:textColor="#ffffff"
+        android:textSize="14dp"
+        android:textStyle="bold"
         />
 
-    <ListView
-        android:id="@android:id/list"
+    <TextView
+        android:id="@+id/event_date"
+        android:layout_margin="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:text="07 de julio de 2013"
+        android:layout_below="@id/event_name"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="6dp"
+        android:background="@color/dark_gray"
+        android:textColor="#ffffff"
+        android:textSize="10dp"
+        />
+
+    <GridView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/gridview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/place_name"
-        android:divider="@null" />
+        android:numColumns="3"
+        android:verticalSpacing="2dp"
+        android:horizontalSpacing="2dp"
+        android:stretchMode="columnWidth"
+        android:gravity="center"
+        android:layout_below="@id/event_date"
+        />
 
-    <!--<RelativeLayout
+    <RelativeLayout
         android:id="@+id/loadingPanel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center" >
 
         <ProgressBar
-            android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:indeterminate="true" />
-    </RelativeLayout>-->
-
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"/>
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/no_info_not_rellay"
@@ -60,7 +78,6 @@
             android:src="@drawable/noinfo"
             />
         <TextView
-            android:id="@+id/noconnection_imageview_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/noconnection_imageview"

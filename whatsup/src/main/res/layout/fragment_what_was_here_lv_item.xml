@@ -3,20 +3,47 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/containerRelativeLayout"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:layout_margin="10dp">
+    style="@style/RL_item"
+    >
+
+    <ImageView
+        android:id="@+id/down_timeline"
+        android:layout_width="2dp"
+        android:layout_height="60dp"
+        android:src="@drawable/down_timeline"
+        android:contentDescription="@string/logo"
+        android:layout_centerVertical="false"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="20dp"
+        />
+
+    <ImageView
+        android:id="@+id/vignette_event"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:src="@drawable/vignette_event"
+        android:contentDescription="@string/logo"
+        android:layout_centerVertical="false"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="17dp"
+        />
+
     <TextView
         style="@style/Tittles"
         android:id="@+id/event_title"
         android:textStyle="bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Inauguración"/>
+        android:text="Inauguración"
+        android:layout_toRightOf="@id/down_timeline"/>
 
     <TextView
         android:id="@+id/date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/event_title"
-        android:text="Sábado, 26 de junio de 2014"/>
+        android:text="Sábado, 26 de junio de 2014"
+        android:layout_toRightOf="@id/down_timeline"/>
+
 
 </RelativeLayout>

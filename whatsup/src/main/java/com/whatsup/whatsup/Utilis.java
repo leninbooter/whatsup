@@ -67,4 +67,20 @@ public class Utilis{
         }
         return data;
     }
+
+    static String getMonthName(Context c, String number) {
+        if( number.equals( "01" ) ) return c.getString( R.string.january );
+        if( number.equals( "02" ) ) return c.getString( R.string.february );
+        if( number.equals( "03" ) ) return c.getString( R.string.march );
+        if( number.equals( "04" ) ) return c.getString( R.string.april );
+        if( number.equals( "05" ) ) return c.getString( R.string.may );
+        if( number.equals( "06" ) ) return c.getString( R.string.june );
+        if( number.equals( "07" ) ) return c.getString( R.string.july );
+        if( number.equals( "08" ) ) return c.getString( R.string.august );
+        if( number.equals( "09" ) ) return c.getString( R.string.septembter );
+        if( number.equals( "10" ) ) return c.getString( R.string.october );
+        if( number.equals( "11" ) ) return c.getString( R.string.november );
+        if( number.equals( "12" ) ) return c.getString( R.string.december );
+        return null;
+    }
 }

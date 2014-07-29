@@ -26,8 +26,10 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="no_info">¡Lo sentimos! No hay información disponible para este sitio en este momento; pero, ¡ve ahora para allá! y averigualo tú mismo.</string>
     <string name="no_maps">Google Maps debe estar instalado para utilizar esta funcionalidad.</string>
+    <string name="no_memory">No hay memoria suficiente para procesar una imagen. Por favor, libere recursos del dispositivo e inténtelo de nuevo.</string>
     <string name="november">noviembre</string>
     <string name="october">octubre</string>
+    <string name="of">de</string>
     <string name="refresh">Recargar</string>
     <string name="saturday">Sábado</string>
     <string name="septembter">septiembre</string>
