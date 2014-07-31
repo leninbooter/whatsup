@@ -125,7 +125,7 @@ public class WhatWasHereFragment extends ListFragment {
 
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState ) {
-        Log.d("onCreateView from what was here", "entered");
+        Log.d("Fragment wwh:", "onCreateView");
         mWhatWasHereListView = (RelativeLayout) inflater.inflate( R.layout.fragment_what_was_here, container, false );
         TextView place_name = (TextView) mWhatWasHereListView.findViewById(R.id.place_name);
         place_name.setText(getString(R.string.what_was_at) + " " + getArguments().getString(PLACE_NAME) + "?");
@@ -138,7 +138,7 @@ public class WhatWasHereFragment extends ListFragment {
         mListener.setCurrentFragmentTag("events");
         mListener.setmTitle( getArguments().getString(PLACE_NAME) );
         if( mPaused ) {
-            Log.d("Fragment wwh:", "restored onCreateView");
+            Log.d("Fragment wwh:", "restored onResume");
             getView().findViewById( R.id.progress_bar ).setVisibility(View.GONE);
             mPaused = false;
         }
@@ -302,11 +302,15 @@ public class WhatWasHereFragment extends ListFragment {
                 month_c = month;
             }
             whatWasHereListViewAdapter = new WhatWasHereListViewAdapter( getActivity(), items );
-            getView().findViewById( R.id.progress_bar ).setVisibility(View.GONE);
-            setListAdapter(whatWasHereListViewAdapter);
-
-            if( adapter.size() == 0 ) {
-                getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
+            try {
+                if (adapter.size() == 0) {
+                    getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
+                } else {
+                    getView().findViewById(R.id.progress_bar).setVisibility(View.GONE);
+                    setListAdapter(whatWasHereListViewAdapter);
+                }
+            }catch ( NullPointerException e ) {
+                Log.e( "NullPointerException onPostExecute from ListViewLoaderTask", "getView is null.");
             }
         }
     }

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple {@link android.app.Fragment} subclass.
@@ -116,13 +117,10 @@ public class WhatWasHereFragmentGV extends Fragment {
     public void onPause() {
         super.onPause();
         downloadTask.cancel(true);
-        /*if( imageLoaderTask != null ) {
-            for (int i = 0; i < imageLoaderTask.length; i++) {
-                imageLoaderTask[i].cancel(true);
-            }
-        }*/
-        if( service != null)
-            service.shutdownNow();
+        if( service != null) {
+            shutdownAndAwaitTermination( service );
+        }
+
     }
 
     @Override
@@ -163,21 +161,12 @@ public class WhatWasHereFragmentGV extends Fragment {
         Log.d("WWHFGV onCreateView", "entered");
         mWhatWasHereListView = null;
         if( savedInstanceState == null ) {
-            try {
                 mWhatWasHereListView = (RelativeLayout) inflater.inflate(R.layout.fragment_what_was_here_gv, container, false);
-                String datestr = getArguments().getString(EVENT_DATE);
-                SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                Date inputDate = fmt.parse(datestr);
-                DateFormat.getDateInstance().format(inputDate);
                 TextView event_name = (TextView) mWhatWasHereListView.findViewById(R.id.event_name);
                 TextView event_date = (TextView) mWhatWasHereListView.findViewById(R.id.event_date);
 
-                event_name.setText(getArguments().getString(EVENT_NAME));
-                event_date.setText(DateFormat.getDateInstance().format(inputDate));
-            }catch ( ParseException e) {
-                Log.d("Exception parsing date", e.getMessage() );
-                e.printStackTrace();
-            }
+                event_name.setText( getArguments().getString(EVENT_NAME) );
+                event_date.setText( getArguments().getString(EVENT_DATE) );
         }
         return mWhatWasHereListView;
     }
@@ -201,6 +190,25 @@ public class WhatWasHereFragmentGV extends Fragment {
             }
         };
         return avoicl;
+    }
+
+    void shutdownAndAwaitTermination(ExecutorService pool) {
+        pool.shutdown(); // Disable new tasks from being submitted
+        try {
+            // Wait a while for existing tasks to terminate
+            if (!pool.awaitTermination(30, TimeUnit.SECONDS)) {
+                pool.shutdownNow(); // Cancel currently executing tasks
+                // Wait a while for tasks to respond to being cancelled
+                if (!pool.awaitTermination(30, TimeUnit.SECONDS))
+                    Log.d("Pausing WwhfGV:", "Could not stop some threads");
+            }
+
+        }catch (InterruptedException ie) {
+                // (Re-)Cancel if current thread also interrupted
+                pool.shutdownNow();
+                // Preserve interrupt status
+                Thread.currentThread().interrupt();
+        }
     }
 
     private class PictsJSONparser {
@@ -260,40 +268,35 @@ public class WhatWasHereFragmentGV extends Fragment {
             }catch ( Exception e ) {
                 Log.d("Exception", e.toString());
             }
-            //String[] from = { "title"};
-            //int[] to = { R.id.event_title};
-            //SimpleAdapter adapter = new SimpleAdapter(getActivity(), events, R.layout.fragment_what_was_here_lv_item, from, to);
+            if( isCancelled() ) return null;
             return mPictures;
         }
 
         @Override
         protected void onPostExecute(List<HashMap<String, Object>>  pictures) {
-            getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-            if( pictures.size() == 0 ) {
-                getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
-            }else {
-                imgAdapter = new ImageAdapter( getActivity(),  R.layout.fragment_what_was_here_gv_item, pictures.size() );
-                GridView gridview = (GridView) getView().findViewById(R.id.gridview);
-                gridview.setAdapter( imgAdapter );
-                gridview.setOnItemClickListener( getImageClickListener() );
-                gridview.setFastScrollEnabled( true );
-                gridview.setFastScrollAlwaysVisible( false );
-                imageLoaderTask = new ImageLoaderTask[ pictures.size() ];
-                service = Executors.newFixedThreadPool(100);
-                for( int i = 0; i < imageLoaderTask.length; i++ ) {
-                    Log.d("new thread for image: ", mPictures.get( i ).get( "source" ).toString() );
-
-                    service.submit( new ImageLoaderTask(mPictures.get(i).get("source").toString(),
-                                    mPictures.get(i).get("source").toString().substring(1, mPictures.get(i).get("source").toString().length()),
-                                    String.valueOf(i)) );
-                    /*imageLoaderTask[i] = new ImageLoaderTask();
-                    imageLoaderTask[i].executeOnExecutor(
-                            AsyncTask.THREAD_POOL_EXECUTOR,
-                            mPictures.get(i).get("source").toString(),
-                            mPictures.get(i).get("source").toString().substring(1, mPictures.get(i).get("source").toString().length()),
-                            String.valueOf(i)
-                    );*/
+            try {
+                getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                if (pictures.size() == 0) {
+                    getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
+                } else {
+                    imgAdapter = new ImageAdapter(getActivity(), R.layout.fragment_what_was_here_gv_item, pictures.size());
+                    GridView gridview = (GridView) getView().findViewById(R.id.gridview);
+                    gridview.setAdapter(imgAdapter);
+                    gridview.setOnItemClickListener(getImageClickListener());
+                    gridview.setFastScrollEnabled(true);
+                    gridview.setFastScrollAlwaysVisible(false);
+                    imageLoaderTask = new ImageLoaderTask[pictures.size()];
+                    service = Executors.newFixedThreadPool(100);
+                    for (int i = 0; i < imageLoaderTask.length; i++) {
+                        Log.d("new thread for image: ", mPictures.get(i).get("source").toString());
+                        service.submit( new ImageLoaderTask(mPictures.get(i).get("source").toString(),
+                                        mPictures.get(i).get("source").toString().substring(1, mPictures.get(i).get("source").toString().length()),
+                                        String.valueOf(i))
+                                      );
+                    }
                 }
+            }catch ( NullPointerException e ) {
+               Log.d("onPostExecute WhatWasHereFragmentGV class:","NullPointerException getting back just before drawing display");
             }
         }
     }
