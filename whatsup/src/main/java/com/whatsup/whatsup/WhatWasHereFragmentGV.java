@@ -67,13 +67,15 @@ public class WhatWasHereFragmentGV extends Fragment {
     private Params parameters;
     private DownloadTask downloadTask;
     private ListViewLoaderTask listViewLoaderTask;
-    private ImageLoaderTask[] imageLoaderTask;
+    private ImageDownloaderTask[] imageLoaderTask;
     private String data = null;
     private List<HashMap<String, Object>>  mPictures;
+    private int mDownloadesPictures = 0;
     private JSONObject jObject;
     private GridView[] gridView;
     private ImageAdapter imgAdapter;
     private ExecutorService service;
+    private ExecutorService mImageLoaderPoolThread;
 
     public interface OnWwhGvsFragmentListener {
         public void setCurrentFragmentTag(String tag);
@@ -111,6 +113,7 @@ public class WhatWasHereFragmentGV extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        Log.d("onResume:", "from wwhgv");
         mListener.setCurrentFragmentTag("events_pictures");
     }
     @Override
@@ -119,6 +122,9 @@ public class WhatWasHereFragmentGV extends Fragment {
         downloadTask.cancel(true);
         if( service != null) {
             shutdownAndAwaitTermination( service );
+        }
+        if( mImageLoaderPoolThread != null ) {
+            shutdownAndAwaitTermination( mImageLoaderPoolThread );
         }
 
     }
@@ -179,6 +185,7 @@ public class WhatWasHereFragmentGV extends Fragment {
             downloadTask = new DownloadTask();
             String strUrl = parameters.REST_SERVER + "/whatsup/slim/public/index.php/place/getpicturesevents/" + getArguments().getString(EVENT_ID) + "/null/null";
             downloadTask.execute(strUrl);
+
         }
     }
 
@@ -275,21 +282,20 @@ public class WhatWasHereFragmentGV extends Fragment {
         @Override
         protected void onPostExecute(List<HashMap<String, Object>>  pictures) {
             try {
-                getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
                 if (pictures.size() == 0) {
                     getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
                 } else {
                     imgAdapter = new ImageAdapter(getActivity(), R.layout.fragment_what_was_here_gv_item, pictures.size());
-                    GridView gridview = (GridView) getView().findViewById(R.id.gridview);
+                    GridView gridview = (GridView) mWhatWasHereListView.findViewById(R.id.gridview);
+                    getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
                     gridview.setAdapter(imgAdapter);
                     gridview.setOnItemClickListener(getImageClickListener());
                     gridview.setFastScrollEnabled(true);
                     gridview.setFastScrollAlwaysVisible(false);
-                    imageLoaderTask = new ImageLoaderTask[pictures.size()];
                     service = Executors.newFixedThreadPool(100);
-                    for (int i = 0; i < imageLoaderTask.length; i++) {
+                    for (int i = 0; i < pictures.size(); i++) {
                         Log.d("new thread for image: ", mPictures.get(i).get("source").toString());
-                        service.submit( new ImageLoaderTask(mPictures.get(i).get("source").toString(),
+                        service.submit( new ImageDownloaderTask(mPictures.get(i).get("source").toString(),
                                         mPictures.get(i).get("source").toString().substring(1, mPictures.get(i).get("source").toString().length()),
                                         String.valueOf(i))
                                       );
@@ -323,11 +329,11 @@ public class WhatWasHereFragmentGV extends Fragment {
             }
         }
 }
-    private class ImageLoaderTask extends Thread {
+    private class ImageDownloaderTask extends Thread {
         String[] urls = new String[3];
         int index;
 
-        public ImageLoaderTask( String...urls ) {
+        public ImageDownloaderTask( String...urls ) {
             this.urls[0] = urls[0];
             this.urls[1] = urls[1];
             this.urls[2] = urls[2];
@@ -345,6 +351,7 @@ public class WhatWasHereFragmentGV extends Fragment {
                 File cacheDirectory = getActivity().getCacheDir();
                 tmpFile = new File( cacheDirectory.getPath() + "/" + urls[2] + "_" + urls[1] );
                 if( !tmpFile.exists() ) {
+                    Log.d("Image was on cache", "no");
                     url = new URL(imgUrl);
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.connect();
@@ -356,6 +363,8 @@ public class WhatWasHereFragmentGV extends Fragment {
                     b.compress(Bitmap.CompressFormat.JPEG, 30, fOutStream);
                     fOutStream.flush();
                     fOutStream.close();
+                }else {
+                    Log.d("Image was on cache", "yes");
                 }
                 HashMap<String, Object> item = new HashMap<String, Object>();
                 item.put( "source", tmpFile.getPath() );
@@ -368,7 +377,7 @@ public class WhatWasHereFragmentGV extends Fragment {
             }
                 synchronized ( imgAdapter ) {
                     imgAdapter.setImage(index, mPictures.get(index).get("source").toString());
-                    imgAdapter.notifyDataSetChanged();
+
                 }
         }
     }
@@ -422,6 +431,7 @@ public class WhatWasHereFragmentGV extends Fragment {
 
     private class ImageAdapter extends BaseAdapter{
         private Context mContext;
+        private LayoutInflater mInflater;
         private int mResourceId;
         private int mQuantity;
         private int hw;
@@ -436,6 +446,7 @@ public class WhatWasHereFragmentGV extends Fragment {
 
         public ImageAdapter(Context mContext, int resourceId, int quantity) {
             this.mContext = mContext;
+            this.mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             this.mQuantity = quantity;
             this.mResourceId = resourceId;
             for( int i=0; i<quantity; i++ )
@@ -456,9 +467,11 @@ public class WhatWasHereFragmentGV extends Fragment {
             Point size = new Point();
             display.getSize(size);
             hw = size.x / 3;
+            mImageLoaderPoolThread = Executors.newCachedThreadPool();
         }
 
         public int getCount() {
+            Log.d("getCount:", String.valueOf( mImages.size()));
             return mImages.size();
         }
 
@@ -474,26 +487,32 @@ public class WhatWasHereFragmentGV extends Fragment {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             ImageView imageView;
-            ViewHolder vh;
+            ViewHolder_GVItem vh;
             if (convertView == null) {  // if it's not recycled, initialize some attributes
-                vh = new ViewHolder();
+                convertView = mInflater.inflate( R.layout.fragment_what_was_here_gv_item, parent, false );
+                vh = new ViewHolder_GVItem();
                 imageView = new ImageView(mContext);
                 imageView.setLayoutParams(new GridView.LayoutParams( hw, hw ));
                 imageView.setImageResource(R.drawable.empty_frame);
                 //imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 //imageView.setPadding(0, 0, 0, 0);
-                vh.icon = imageView;
-            } else {
-                //imageView = (ImageView) convertView;
-                vh = new ViewHolder();
-                vh.icon = (ImageView) convertView;
+                vh.icon = (ImageView) convertView.findViewById( R.id.imageview );
+                vh.icon.getLayoutParams().height = hw;
+                vh.icon.getLayoutParams().width = hw;
                 vh.icon.setImageResource(R.drawable.empty_frame);
+                vh.position = position;
+                convertView.setTag( vh );
+            } else {
+                vh = (ViewHolder_GVItem) convertView.getTag();
+                //vh = new ViewHolder();
+                vh.icon.setImageResource(R.drawable.empty_frame);
+                vh.position = position;
             }
             if( mImages.get(position) == null ) {
                 //vh.icon.setImageResource(R.drawable.empty_frame);
             }else {
                 //vh.icon.setImageResource( R.drawable.empty_frame );
-                //new GVImageLoader( mImages.get( position ), vh, position );
+                mImageLoaderPoolThread.submit( new GVImageLoader(getActivity(), mImages.get( position ), vh, position ) );
                 /*Bitmap bitmap = getBitmapFromMemCache(String.valueOf(position));
                 if (bitmap != null) {
                     imageView.setImageBitmap(bitmap);
@@ -507,12 +526,12 @@ public class WhatWasHereFragmentGV extends Fragment {
                 //imageView.setImageDrawable( Drawable.createFromPath( mImages.get(position) ) );*/
             }
 
-            return vh.icon;
+            return convertView;
         }
 
         public void setImage( int position, String path ) {
             mImages.put(position, path);
-            notifyDataSetChanged();
+            Log.d("setImage" , "yes");
         }
 
         public Bitmap getBitmapFromMemCache(String key) {
@@ -542,11 +561,6 @@ public class WhatWasHereFragmentGV extends Fragment {
             });
 
         }
-    }
-
-    static class ViewHolder {
-        int position;
-        ImageView icon;
     }
 }
 

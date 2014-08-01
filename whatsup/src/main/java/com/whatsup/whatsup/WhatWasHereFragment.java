@@ -148,6 +148,11 @@ public class WhatWasHereFragment extends ListFragment {
         super.onPause();
         Log.d("on", "onPause");
         mPaused = true;
+        if( downloadTask != null )
+            downloadTask.cancel( true );
+        if( listViewLoaderTask != null )
+            listViewLoaderTask.cancel( true );
+
     }
 
     @Override
