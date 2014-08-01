@@ -2,12 +2,10 @@ package com.whatsup.whatsup;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ListFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,11 +16,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,16 +28,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -76,6 +69,7 @@ public class WhatWasHereFragmentGV extends Fragment {
     private ImageAdapter imgAdapter;
     private ExecutorService service;
     private ExecutorService mImageLoaderPoolThread;
+    private Executor mImageLoaderExecutor;
 
     public interface OnWwhGvsFragmentListener {
         public void setCurrentFragmentTag(String tag);
@@ -350,7 +344,7 @@ public class WhatWasHereFragmentGV extends Fragment {
             try {
                 File cacheDirectory = getActivity().getCacheDir();
                 tmpFile = new File( cacheDirectory.getPath() + "/" + urls[2] + "_" + urls[1] );
-                if( !tmpFile.exists() ) {
+                if( true ) {
                     Log.d("Image was on cache", "no");
                     url = new URL(imgUrl);
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -358,9 +352,10 @@ public class WhatWasHereFragmentGV extends Fragment {
                     if( isInterrupted() ) return;
                     iStream = urlConnection.getInputStream();
                     FileOutputStream fOutStream = new FileOutputStream(tmpFile);
-                    Bitmap b = BitmapFactory.decodeStream(iStream);
+                    Bitmap b = BitmapFactory.decodeStream( iStream );
+                    b = Bitmap.createScaledBitmap(b, 150, 150, false);
                     if( isInterrupted() ) return;
-                    b.compress(Bitmap.CompressFormat.JPEG, 30, fOutStream);
+                    b.compress(Bitmap.CompressFormat.JPEG, 70, fOutStream);
                     fOutStream.flush();
                     fOutStream.close();
                 }else {
@@ -379,6 +374,29 @@ public class WhatWasHereFragmentGV extends Fragment {
                     imgAdapter.setImage(index, mPictures.get(index).get("source").toString());
 
                 }
+        }
+
+        public int calculateInSampleSize(
+                BitmapFactory.Options options, int reqWidth, int reqHeight) {
+            // Raw height and width of image
+            final int height = options.outHeight;
+            final int width = options.outWidth;
+            int inSampleSize = 1;
+
+            if (height > reqHeight || width > reqWidth) {
+
+                final int halfHeight = height / 2;
+                final int halfWidth = width / 2;
+
+                // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+                // height and width larger than the requested height and width.
+                while ((halfHeight / inSampleSize) > reqHeight
+                        && (halfWidth / inSampleSize) > reqWidth) {
+                    inSampleSize *= 2;
+                }
+            }
+
+            return inSampleSize;
         }
     }
     /*
@@ -436,7 +454,6 @@ public class WhatWasHereFragmentGV extends Fragment {
         private int mQuantity;
         private int hw;
         private HashMap<Integer, String> mImages = new HashMap<Integer, String>();
-        private LruCache<String, Bitmap> mMemoryCache;
 
         private static final int PROGRESSBARINDEX = 0;
         private static final int IMAGEVIEWINDEX = 1;
@@ -452,22 +469,13 @@ public class WhatWasHereFragmentGV extends Fragment {
             for( int i=0; i<quantity; i++ )
                 mImages.put( i, null );
 
-            final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
-            // Use 1/8th of the available memory for this memory cache.
-            final int cacheSize = maxMemory / 2;
-            mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
-                @Override
-                protected int sizeOf(String key, Bitmap bitmap) {
-                    // The cache size will be measured in kilobytes rather than
-                    // number of items.
-                    return bitmap.getByteCount() / 1024;
-                }
-            };
+
             Display display = getActivity().getWindowManager().getDefaultDisplay();
             Point size = new Point();
             display.getSize(size);
             hw = size.x / 3;
-            mImageLoaderPoolThread = Executors.newCachedThreadPool();
+            mImageLoader = new ImageLoader( R.drawable.empty_frame );
+
         }
 
         public int getCount() {
@@ -505,27 +513,10 @@ public class WhatWasHereFragmentGV extends Fragment {
             } else {
                 vh = (ViewHolder_GVItem) convertView.getTag();
                 //vh = new ViewHolder();
-                vh.icon.setImageResource(R.drawable.empty_frame);
+                vh.icon.setImageResource( R.drawable.empty_frame);
                 vh.position = position;
             }
-            if( mImages.get(position) == null ) {
-                //vh.icon.setImageResource(R.drawable.empty_frame);
-            }else {
-                //vh.icon.setImageResource( R.drawable.empty_frame );
-                mImageLoaderPoolThread.submit( new GVImageLoader(getActivity(), mImages.get( position ), vh, position ) );
-                /*Bitmap bitmap = getBitmapFromMemCache(String.valueOf(position));
-                if (bitmap != null) {
-                    imageView.setImageBitmap(bitmap);
-                    Log.d("cached", "yes");
-                } else {
-                    addBitmapToMemoryCache(String.valueOf(position), BitmapFactory.decodeFile(mImages.get(position)));
-                    bitmap = getBitmapFromMemCache(String.valueOf(position));
-                    imageView.setImageBitmap(bitmap);
-                    Log.d("cached", "no");
-                }
-                //imageView.setImageDrawable( Drawable.createFromPath( mImages.get(position) ) );*/
-            }
-
+            mImageLoader.getImage( mImages.get( position ), position, vh, null );
             return convertView;
         }
 
@@ -534,15 +525,7 @@ public class WhatWasHereFragmentGV extends Fragment {
             Log.d("setImage" , "yes");
         }
 
-        public Bitmap getBitmapFromMemCache(String key) {
-            return mMemoryCache.get(key);
-        }
 
-        public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
-            if (getBitmapFromMemCache(key) == null) {
-                mMemoryCache.put(key, bitmap);
-            }
-        }
         public void handleImageLoaded(
                 final ViewSwitcher aViewSwitcher,
                 final ImageView aImageView,

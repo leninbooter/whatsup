@@ -1,122 +1,95 @@
 package com.whatsup.whatsup;
 
+import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Handler;
-import android.os.Looper;
+import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.ViewSwitcher;
 
-public class ImageLoader extends Thread {
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
-    public interface ImageLoadListener {
+/**
+ * Created by alenin on 28/07/2014.
+ */
+/*
+public class GVImageLoader extends Thread {
+    private ViewHolder_GVItem mVh;
+    private String mAddr;
+    private int mPosition;
+    private Activity mContext;
 
-        void handleImageLoaded(ViewSwitcher aViewSwitcher, ImageView aImageView, Bitmap aBitmap);
-    }
-
-    private static final String TAG = ImageLoader.class.getSimpleName();
-    ImageLoadListener mListener = null;
-    private Handler handler;
-
-    /**
-     * Image loader takes an object that extends ImageLoadListener
-     * @param lListener
-     */
-    ImageLoader(ImageLoadListener lListener){
-        mListener = lListener;
+    public GVImageLoader(Activity context, String pathFile, ViewHolder_GVItem vh, int position ) {
+        this.mContext = context;
+        this.mAddr = pathFile;
+        this.mVh  = vh;
+        this.mPosition = position;
+        run();
     }
 
     @Override
     public void run() {
-        try {
+            if (this.mVh.position == this.mPosition) {
+                    mVh.icon.setImageBitmap(BitmapFactory.decodeFile(mAddr));
 
-// preparing a looper on current thread
-// the current thread is being detected implicitly
-            Looper.prepare();
+            }
+    }
+}*/
 
-// Looper gets attached to the current thread by default
-            handler = new Handler();
+public class ImageLoader implements ImageLoaderAsyncTask.OnImageLoaderAsyncTaskListener {
+    private LruCache<String, Bitmap> mMemoryCache;
+    private Executor mImageLoaderExecutor;
+    private List< ImageLoaderAsyncTask > mAsyncTask = new ArrayList<ImageLoaderAsyncTask>();
+    private int mNoLoadedImage;
 
-            Looper.loop();
-// Thread will start
+    public ImageLoader(int mNoLoadedImage_in) {
+        mImageLoaderExecutor = Executors.newSingleThreadExecutor();
+        this.mNoLoadedImage = mNoLoadedImage_in;
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+        // Use 1/8th of the available memory for this memory cache.
+        final int cacheSize = maxMemory / 2;
+        mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
+            @Override
+            protected int sizeOf(String key, Bitmap bitmap) {
+                // The cache size will be measured in kilobytes rather than
+                // number of items.
+                return bitmap.getByteCount() / 1024;
+            }
+        };
+    }
 
-        } catch (Throwable t) {
-            Log.e(TAG, "ImageLoader halted due to a error: ", t);
+
+
+    public Bitmap getBitmapFromMemCache(String key) {
+        return mMemoryCache.get(key);
+    }
+
+    public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
+        if (getBitmapFromMemCache(key) == null) {
+            mMemoryCache.put(key, bitmap);
         }
     }
 
-    /**
-     * Method stops the looper and thus the thread
-     */
-    public synchronized void stopThread() {
+    public void getImage( String pathFile_in, int position_in, ViewHolder_GVItem vh_in, Executor pool ) {
+        Bitmap bitmap = null;
 
-// Use the handler to schedule a quit on the looper
-        handler.post(new Runnable() {
-
-            public void run() {
-// This runs on the ImageLoader thread
-                Log.i(TAG, "DownloadThread loop quitting by request");
-
-                Looper.myLooper().quit();
+            bitmap = getBitmapFromMemCache(String.valueOf(position_in));
+            if (bitmap != null) {
+                Log.d("cached", "yes");
+                vh_in.icon.setImageBitmap( bitmap );
+            } else {
+                Log.d("cached", "no");
+                vh_in.icon.setImageResource( mNoLoadedImage );
+                if( pathFile_in != null)
+                    new ImageLoaderAsyncTask( vh_in, position_in, pathFile_in, mImageLoaderExecutor, this );
             }
-        });
     }
-
-    /**
-     * Method queues the image at path to load
-     * Note that the actual loading takes place in the UI thread
-     * the ImageView and ViewSwitcher are just references for the
-     * UI thread.
-     * @param aPath - Path where the bitmap is located to load
-     * @param aImageView - The ImageView the UI thread will load
-     * @param aViewSwitcher - The ViewSwitcher that needs to display the imageview
-     */
-    public synchronized void queueImageLoad(
-            final String aPath,
-            final ImageView aImageView,
-            final ViewSwitcher aViewSwitcher) {
-
-// Wrap DownloadTask into another Runnable to track the statistics
-        handler.post(new Runnable() {
-            public void run() {
-                try {
-
-                    synchronized (aImageView){
-// make sure this thread is the only one performing activities on
-// this imageview
-                        BitmapFactory.Options lOptions = new BitmapFactory.Options();
-                        lOptions.inSampleSize = 1;
-                        Bitmap lBitmap = BitmapFactory.decodeFile(aPath, lOptions);
-//aImage.setImageBitmap(lBitmap);
-
-// Load the image here
-                        signalUI(aViewSwitcher, aImageView, lBitmap);
-                    }
-                }
-                catch(Exception e){
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    /**
-     * Method is called when the bitmap is loaded. The UI thread adds the bitmap to the imageview.
-     * @param aViewSwitcher - The ViewSwitcher that needs to display the imageview
-     * @param aImageView - The ImageView the UI thread will load
-     * @param aImage - The Bitmap that gets loaded into the ImageView
-     */
-    private void signalUI(
-            ViewSwitcher aViewSwitcher,
-            ImageView aImageView,
-            Bitmap aImage){
-
-        if(mListener != null){
-// we have an object that implements ImageLoadListener
-
-            mListener.handleImageLoaded(aViewSwitcher, aImageView, aImage);
-        }
-    }
-
 }
+
