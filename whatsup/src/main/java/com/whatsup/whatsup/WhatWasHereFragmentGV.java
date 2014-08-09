@@ -48,7 +48,8 @@ import java.util.concurrent.TimeUnit;
  * create an instance of this fragment.
  *
  */
-public class WhatWasHereFragmentGV extends Fragment {
+public class WhatWasHereFragmentGV extends Fragment
+                                    implements ImageDownloaderAsyncTask.onImageDownloaderAsyncTaskListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String EVENT_ID = "event_id";
@@ -60,12 +61,10 @@ public class WhatWasHereFragmentGV extends Fragment {
     private Params parameters;
     private DownloadTask downloadTask;
     private ListViewLoaderTask listViewLoaderTask;
-    private ImageDownloaderTask[] imageLoaderTask;
     private String data = null;
     private List<HashMap<String, Object>>  mPictures;
-    private int mDownloadesPictures = 0;
     private JSONObject jObject;
-    private GridView[] gridView;
+    private GridView gridview;
     private ImageAdapter imgAdapter;
     private ExecutorService service;
     private ExecutorService mImageLoaderPoolThread;
@@ -212,6 +211,28 @@ public class WhatWasHereFragmentGV extends Fragment {
         }
     }
 
+    public void downLoadImage( String path, String imageName, String index ) {
+       service.submit( new ImageDownloaderAsyncTask( getActivity(), imgAdapter ,this , path, imageName, index ) );
+    }
+
+    public void PickDownloadedImage( String path ) {
+        File file = new File( path );
+        String filename = file.getName();
+        int index = Integer.valueOf( filename.substring(0, filename.indexOf( "_" ) ) );
+        synchronized ( imgAdapter ) {
+            imgAdapter.setImage( index, path );
+            if( index >= gridview.getFirstVisiblePosition() && index <= gridview.getLastVisiblePosition() ) {
+                Log.d("notified", "yes");
+                getActivity().runOnUiThread( new Runnable() {
+                    @Override
+                    public void run() {
+                        imgAdapter.notifyDataSetChanged();
+                    }
+                });
+            }
+        }
+    }
+
     private class PictsJSONparser {
 
         //Images processing
@@ -280,19 +301,21 @@ public class WhatWasHereFragmentGV extends Fragment {
                     getView().findViewById(R.id.no_info_not_rellay).setVisibility(View.VISIBLE);
                 } else {
                     imgAdapter = new ImageAdapter(getActivity(), R.layout.fragment_what_was_here_gv_item, pictures.size());
-                    GridView gridview = (GridView) mWhatWasHereListView.findViewById(R.id.gridview);
+                    gridview = (GridView) mWhatWasHereListView.findViewById(R.id.gridview);
                     getView().findViewById(R.id.loadingPanel).setVisibility(View.GONE);
                     gridview.setAdapter(imgAdapter);
                     gridview.setOnItemClickListener(getImageClickListener());
                     gridview.setFastScrollEnabled(true);
-                    gridview.setFastScrollAlwaysVisible(false);
-                    service = Executors.newFixedThreadPool(100);
+                    Log.d("adapter", "ready");
+                    service = Executors.newFixedThreadPool(2);
                     for (int i = 0; i < pictures.size(); i++) {
                         Log.d("new thread for image: ", mPictures.get(i).get("source").toString());
-                        service.submit( new ImageDownloaderTask(mPictures.get(i).get("source").toString(),
+                        File file = new File( mPictures.get(i).get("source").toString() );
+                        downLoadImage( mPictures.get(i).get("source").toString(), file.getName(), String.valueOf( i ) );
+                        /*service.submit( new ImageDownloaderAsyncTask( getActivity(),  mPictures.get(i).get("source").toString(),
                                         mPictures.get(i).get("source").toString().substring(1, mPictures.get(i).get("source").toString().length()),
                                         String.valueOf(i))
-                                      );
+                                      );*/
                     }
                 }
             }catch ( NullPointerException e ) {
@@ -323,228 +346,9 @@ public class WhatWasHereFragmentGV extends Fragment {
             }
         }
 }
-    private class ImageDownloaderTask extends Thread {
-        String[] urls = new String[3];
-        int index;
-
-        public ImageDownloaderTask( String...urls ) {
-            this.urls[0] = urls[0];
-            this.urls[1] = urls[1];
-            this.urls[2] = urls[2];
-            this.index = Integer.valueOf( urls[2] );
-        }
-
-        @Override
-        public void run() {
-            InputStream iStream = null;
-            String imgUrl = Params.CDN + urls[0];
-            Log.d("ImageLoaderTask will download: ", imgUrl );
-            URL url;
-            File tmpFile;
-            try {
-                File cacheDirectory = getActivity().getCacheDir();
-                tmpFile = new File( cacheDirectory.getPath() + "/" + urls[2] + "_" + urls[1] );
-                if( true ) {
-                    Log.d("Image was on cache", "no");
-                    url = new URL(imgUrl);
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.connect();
-                    if( isInterrupted() ) return;
-                    iStream = urlConnection.getInputStream();
-                    FileOutputStream fOutStream = new FileOutputStream(tmpFile);
-                    Bitmap b = BitmapFactory.decodeStream( iStream );
-                    b = Bitmap.createScaledBitmap(b, 150, 150, false);
-                    if( isInterrupted() ) return;
-                    b.compress(Bitmap.CompressFormat.JPEG, 70, fOutStream);
-                    fOutStream.flush();
-                    fOutStream.close();
-                }else {
-                    Log.d("Image was on cache", "yes");
-                }
-                HashMap<String, Object> item = new HashMap<String, Object>();
-                item.put( "source", tmpFile.getPath() );
-                mPictures.set ( Integer.valueOf( urls[2] ) , item);
-            } catch (Exception e) {
-                Log.d("Exception on Imagedownloader task", e.getMessage());
-                e.printStackTrace();
-            } catch ( OutOfMemoryError ome ) {
-                Toast.makeText( getActivity(), getString( R.string.no_memory ), Toast.LENGTH_SHORT ).show();
-            }
-                synchronized ( imgAdapter ) {
-                    imgAdapter.setImage(index, mPictures.get(index).get("source").toString());
-
-                }
-        }
-
-        public int calculateInSampleSize(
-                BitmapFactory.Options options, int reqWidth, int reqHeight) {
-            // Raw height and width of image
-            final int height = options.outHeight;
-            final int width = options.outWidth;
-            int inSampleSize = 1;
-
-            if (height > reqHeight || width > reqWidth) {
-
-                final int halfHeight = height / 2;
-                final int halfWidth = width / 2;
-
-                // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-                // height and width larger than the requested height and width.
-                while ((halfHeight / inSampleSize) > reqHeight
-                        && (halfWidth / inSampleSize) > reqWidth) {
-                    inSampleSize *= 2;
-                }
-            }
-
-            return inSampleSize;
-        }
-    }
-    /*
-    private class ImageLoaderTask extends AsyncTask<String, Void, Integer> {
-        @Override
-        protected Integer doInBackground(String... urls) {
-                InputStream iStream = null;
-                String imgUrl = Params.CDN + urls[0];
-                Log.d("ImageLoaderTask will download: ", imgUrl );
-                URL url;
-                File tmpFile;
-                try {
-                    File cacheDirectory = getActivity().getCacheDir();
-                    tmpFile = new File( cacheDirectory.getPath() + "/" + urls[2] + "_" + urls[1] );
-                    if( !tmpFile.exists() ) {
-                        url = new URL(imgUrl);
-                        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                        urlConnection.connect();
-                        iStream = urlConnection.getInputStream();
-                        FileOutputStream fOutStream = new FileOutputStream(tmpFile);
-                        Bitmap b = BitmapFactory.decodeStream(iStream);
-                        b.compress(Bitmap.CompressFormat.JPEG, 30, fOutStream);
-                        fOutStream.flush();
-                        fOutStream.close();
-                    }
-                    HashMap<String, Object> item = new HashMap<String, Object>();
-                    item.put( "source", tmpFile.getPath() );
-                    mPictures.set ( Integer.valueOf( urls[2] ) , item);
-                    if (isCancelled()) return null;
-                } catch (Exception e) {
-                    Log.d("Exception on Imagedownloader task", e.getMessage());
-                    e.printStackTrace();
-                    return null;
-                } catch ( OutOfMemoryError ome ) {
-                    Toast.makeText( getActivity(), getString( R.string.no_memory ), Toast.LENGTH_SHORT ).show();
-                }
-            return Integer.valueOf( urls[2] );
-        }
-
-        @Override
-        protected void onPostExecute(Integer index) {
-            if( index != null ) {
-                imgAdapter.setImage( index, mPictures.get( index ).get( "source" ).toString() );
-                imgAdapter.notifyDataSetChanged();
-            }else {
-                Toast.makeText(getActivity(), R.string.lost_connection, Toast.LENGTH_SHORT).show();
-            }
-        }
-    }*/
-
-    private class ImageAdapter extends BaseAdapter{
-        private Context mContext;
-        private LayoutInflater mInflater;
-        private int mResourceId;
-        private int mQuantity;
-        private int hw;
-        private HashMap<Integer, String> mImages = new HashMap<Integer, String>();
-
-        private static final int PROGRESSBARINDEX = 0;
-        private static final int IMAGEVIEWINDEX = 1;
-
-        private Handler mHandler;
-        private ImageLoader mImageLoader = null;
-
-        public ImageAdapter(Context mContext, int resourceId, int quantity) {
-            this.mContext = mContext;
-            this.mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            this.mQuantity = quantity;
-            this.mResourceId = resourceId;
-            for( int i=0; i<quantity; i++ )
-                mImages.put( i, null );
 
 
-            Display display = getActivity().getWindowManager().getDefaultDisplay();
-            Point size = new Point();
-            display.getSize(size);
-            hw = size.x / 3;
-            mImageLoader = new ImageLoader( R.drawable.empty_frame );
 
-        }
-
-        public int getCount() {
-            Log.d("getCount:", String.valueOf( mImages.size()));
-            return mImages.size();
-        }
-
-        public String getItem(int position) {
-            return null;
-        }
-
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        // create a new ImageView for each item referenced by the Adapter
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ImageView imageView;
-            ViewHolder_GVItem vh;
-            if (convertView == null) {  // if it's not recycled, initialize some attributes
-                convertView = mInflater.inflate( R.layout.fragment_what_was_here_gv_item, parent, false );
-                vh = new ViewHolder_GVItem();
-                imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams( hw, hw ));
-                imageView.setImageResource(R.drawable.empty_frame);
-                //imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                //imageView.setPadding(0, 0, 0, 0);
-                vh.icon = (ImageView) convertView.findViewById( R.id.imageview );
-                vh.icon.getLayoutParams().height = hw;
-                vh.icon.getLayoutParams().width = hw;
-                vh.icon.setImageResource(R.drawable.empty_frame);
-                vh.position = position;
-                convertView.setTag( vh );
-            } else {
-                vh = (ViewHolder_GVItem) convertView.getTag();
-                //vh = new ViewHolder();
-                vh.icon.setImageResource( R.drawable.empty_frame);
-                vh.position = position;
-            }
-            mImageLoader.getImage( mImages.get( position ), position, vh, null );
-            return convertView;
-        }
-
-        public void setImage( int position, String path ) {
-            mImages.put(position, path);
-            Log.d("setImage" , "yes");
-        }
-
-
-        public void handleImageLoaded(
-                final ViewSwitcher aViewSwitcher,
-                final ImageView aImageView,
-                final Bitmap aBitmap) {
-
-            // The enqueue the following in the UI thread
-            mHandler.post(new Runnable() {
-                public void run() {
-
-                    // set the bitmap in the ImageView
-                    aImageView.setImageBitmap(aBitmap);
-
-                    // explicitly tell the view switcher to show the second view
-                    aViewSwitcher.setDisplayedChild(IMAGEVIEWINDEX);
-                }
-            });
-
-        }
-    }
 }
 
 

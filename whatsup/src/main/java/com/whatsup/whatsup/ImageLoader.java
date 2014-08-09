@@ -50,7 +50,7 @@ public class ImageLoader implements ImageLoaderAsyncTask.OnImageLoaderAsyncTaskL
     private int mNoLoadedImage;
 
     public ImageLoader(int mNoLoadedImage_in) {
-        mImageLoaderExecutor = Executors.newSingleThreadExecutor();
+        mImageLoaderExecutor = Executors.newFixedThreadPool(6);
         this.mNoLoadedImage = mNoLoadedImage_in;
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         // Use 1/8th of the available memory for this memory cache.
@@ -65,8 +65,6 @@ public class ImageLoader implements ImageLoaderAsyncTask.OnImageLoaderAsyncTaskL
         };
     }
 
-
-
     public Bitmap getBitmapFromMemCache(String key) {
         return mMemoryCache.get(key);
     }
@@ -80,16 +78,17 @@ public class ImageLoader implements ImageLoaderAsyncTask.OnImageLoaderAsyncTaskL
     public void getImage( String pathFile_in, int position_in, ViewHolder_GVItem vh_in, Executor pool ) {
         Bitmap bitmap = null;
 
-            bitmap = getBitmapFromMemCache(String.valueOf(position_in));
-            if (bitmap != null) {
-                Log.d("cached", "yes");
-                vh_in.icon.setImageBitmap( bitmap );
-            } else {
-                Log.d("cached", "no");
-                vh_in.icon.setImageResource( mNoLoadedImage );
-                if( pathFile_in != null)
-                    new ImageLoaderAsyncTask( vh_in, position_in, pathFile_in, mImageLoaderExecutor, this );
+        bitmap = getBitmapFromMemCache(String.valueOf(position_in));
+        if (bitmap != null) {
+            Log.d("cached", "yes");
+            vh_in.icon.setImageBitmap( bitmap );
+        } else {
+            Log.d("cached", "no");
+            vh_in.icon.setImageResource( mNoLoadedImage );
+            if( pathFile_in != null) {
+                new ImageLoaderAsyncTask(vh_in, position_in, pathFile_in, mImageLoaderExecutor, this);
             }
+        }
     }
 }
 
